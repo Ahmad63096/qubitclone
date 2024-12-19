@@ -339,7 +339,11 @@ body {
   margin: 8px;
   font-size: 22px;
 }
-
+.btn-wrap {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+}
 .dropdown {
   cursor: pointer;
 }

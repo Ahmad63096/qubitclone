@@ -34,7 +34,7 @@ function Chatbot() {
                   <i className="fa-solid fa-ellipsis"></i>
                 </span>
               </div>
-              <span className="title">Qubit</span>
+              <span className="title">Devpandas</span>
               <i onClick={togglePopup} className="fa fa-times" aria-hidden="true" style={{ fontSize: '30px' }}></i>
             </div>
           ) : (

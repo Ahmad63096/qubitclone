@@ -12,5 +12,20 @@ const animateBotReply = (id) => {
     });
   }
 };
+function generateSessionId() {
+  return '_' + Math.random().toString(36).substr(2, 9);
+}
+function getSessionId() {
+  let sessionId = localStorage.getItem('session_id');
+  if (!sessionId) {
+      sessionId = generateSessionId();
+      localStorage.setItem('session_id', sessionId);
+      console.log('New session created:', sessionId);
+  } else {
+      console.log('Existing session:', sessionId);
+  }
 
-export { animateBotReply };
+  return sessionId;
+}
+
+export { animateBotReply, getSessionId};

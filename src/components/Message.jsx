@@ -10,7 +10,6 @@ function Message() {
   const [isTyping, setIsTyping] = useState(false);
   const messagesContainerRef = useRef(null);
   const inputRef = useRef(null);
-  const sessionId = "_fi68ybtky";
   const ip = "103.8.112.36";
 
   const getTimestamp = () => {
@@ -20,9 +19,21 @@ function Message() {
     const ampm = now.getHours() >= 12 ? "pm" : "am";
     return `${hours}:${minutes} ${ampm}`;
   };
-
+  function generateSessionId() {
+    return '_' + Math.random().toString(36).substr(2, 9);
+  }
+  function getSessionId() {
+    let sessionId = localStorage.getItem('session_id');
+    if (!sessionId) {
+      sessionId = generateSessionId();
+      localStorage.setItem('session_id', sessionId);
+      console.log('New session created:', sessionId);
+    } else {
+      console.log('Existing session:', sessionId);
+    }
+    return sessionId;
+  }
   const getUniqueMessageId = () => Date.now();
-
   const sendMessage = async (message = currentMessage) => {
     if (message.trim()) {
       const userMessage = {
@@ -38,26 +49,63 @@ function Message() {
 
       try {
         const botReply = await fetchBotReply(message);
-        if (botReply) {
-          const firstReply = {
-            sender: "bot",
-            text: botReply.main_response,
-            timestamp: getTimestamp(),
-            id: getUniqueMessageId(),
-          };
-          setMessages((prevMessages) => [...prevMessages, firstReply]);
-          setTimeout(() => animateBotReply(firstReply.id), 0);
+        console.log("bot reply", botReply);
 
-          if (botReply.follow_up_question?.trim()) {
+        if (botReply) {
+          const mainResponse = botReply.main_response?.trim();
+          const followUpQuestion = botReply.follow_up_question?.trim();
+          const showButton = botReply.show_button === 1;
+
+          // Display main response if available
+          if (mainResponse) {
+            const mainResponseMessage = {
+              sender: "bot",
+              text: mainResponse,
+              timestamp: getTimestamp(),
+              id: getUniqueMessageId(),
+            };
+            setMessages((prevMessages) => [...prevMessages, mainResponseMessage]);
+            setTimeout(() => animateBotReply(mainResponseMessage.id), 0);
+          }
+
+          // Display follow-up question if available
+          if (followUpQuestion) {
             setTimeout(() => {
-              const secondReply = {
+              const followUpMessage = {
                 sender: "bot",
-                text: botReply.follow_up_question,
+                text: followUpQuestion,
                 timestamp: getTimestamp(),
                 id: getUniqueMessageId(),
               };
-              setMessages((prevMessages) => [...prevMessages, secondReply]);
-              setTimeout(() => animateBotReply(secondReply.id), 0);
+              setMessages((prevMessages) => [...prevMessages, followUpMessage]);
+              setTimeout(() => animateBotReply(followUpMessage.id), 0);
+            }, 2000);
+          }
+
+          // Display suggestion buttons if showButton is true
+          if (showButton) {
+            setTimeout(() => {
+              const buttonMessage = {
+                sender: "bot",
+                text: "", // Avoid repeating the previous text
+                timestamp: getTimestamp(),
+                id: getUniqueMessageId(),
+                buttons: [
+                  "AI BOT Development",
+                  "Software Development",
+                  "DevOps & cloud computing",
+                  "Schedule Demo",
+                ],
+              };
+              setMessages((prevMessages) => {
+                // Ensure buttons are added without duplicating the previous bot message
+                const updatedMessages = [...prevMessages];
+                if (!prevMessages.some(msg => msg.buttons)) {
+                  updatedMessages.push(buttonMessage);
+                }
+                return updatedMessages;
+              });
+              setTimeout(() => animateBotReply(buttonMessage.id), 0);
             }, 2000);
           }
         }
@@ -72,7 +120,7 @@ function Message() {
   const fetchBotReply = async (message) => {
     const zoneTime = new Date().toLocaleString("en-US", { timeZone: "Asia/Karachi" });
     const data = {
-      session_id: sessionId,
+      session_id: getSessionId(),
       message,
       Zone: "Asia/Karachi",
       zoneTime,
@@ -96,23 +144,17 @@ function Message() {
 
   const handleButtonClick = (buttonText) => {
     let responseMessage = "";
-
-    // Define the mapping of button text to corresponding response message
     const buttonMessages = {
       "AI BOT Development": "I want to know about AI chatbots.",
       "Software Development": "I want to know about software development",
       "DevOps & cloud computing": "I want to know about the DevOps & Cloud computing",
       "Schedule Demo": "I want to book a demo"
     };
-
-    // Check if the button text exists in the mapping
     if (buttonMessages[buttonText]) {
       responseMessage = buttonMessages[buttonText];
     } else {
       responseMessage = "Sorry, I didn't understand that request.";
     }
-
-    // Send the message corresponding to the button click
     sendMessage(responseMessage);
   };
   const scrollToBottom = () => {
@@ -124,7 +166,9 @@ function Message() {
       });
     }
   };
-
+  useEffect(() => {
+    localStorage.removeItem('session_id');
+  }, []);
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -140,12 +184,6 @@ function Message() {
           text: data.data,
           timestamp: getTimestamp(),
           id: getUniqueMessageId(),
-          buttons: [
-            "AI BOT Development",
-            "Software Development",
-            "DevOps & cloud computing",
-            "Schedule Demo",
-          ],
         };
 
         setMessages([greetingMessage]);
@@ -161,14 +199,18 @@ function Message() {
   return (
     <>
       <ul ref={messagesContainerRef} className="messages">
-        {messages.map((msg) =>
+        {messages.map((msg) => (
+          // Check if the message has buttons
           msg.buttons ? (
             <div key={msg.id} id={`message-${msg.id}`} className="buttons-container">
-              <li className="other">
-                {msg.text}
-                <div className="timestamp">{msg.timestamp}</div>
-              </li>
-              <div>
+              {/* Only render <li> if there's content in the message */}
+              {msg.text && (
+                <li className="other">
+                  {msg.text}
+                  <div className="timestamp">{msg.timestamp}</div>
+                </li>
+              )}
+              <div className="btn-wrap">
                 {msg.buttons.map((buttonText, index) => (
                   <button key={index} onClick={() => handleButtonClick(buttonText)}>
                     {buttonText}
@@ -182,9 +224,8 @@ function Message() {
               <div className="timestamp">{msg.timestamp}</div>
             </li>
           )
-        )}
+        ))}
       </ul>
-
       {isTyping && (
         <li className="typing">
           <img src={typing} alt="Typing indicator" />
