@@ -747,7 +747,7 @@ body {
   color: black;
   border-radius: 3px;
   cursor: pointer;
-  font-family: 'CustomFont2', sans-serif;
+  /* font-family: 'CustomFont2', sans-serif; */
   font-size: 12px;
 }
 

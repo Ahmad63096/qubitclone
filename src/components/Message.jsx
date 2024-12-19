@@ -95,9 +95,26 @@ function Message() {
   };
 
   const handleButtonClick = (buttonText) => {
-    sendMessage(buttonText);
-  };
+    let responseMessage = "";
 
+    // Define the mapping of button text to corresponding response message
+    const buttonMessages = {
+      "AI BOT Development": "I want to know about AI chatbots.",
+      "Software Development": "I want to know about software development",
+      "DevOps & cloud computing": "I want to know about the DevOps & Cloud computing",
+      "Schedule Demo": "I want to book a demo"
+    };
+
+    // Check if the button text exists in the mapping
+    if (buttonMessages[buttonText]) {
+      responseMessage = buttonMessages[buttonText];
+    } else {
+      responseMessage = "Sorry, I didn't understand that request.";
+    }
+
+    // Send the message corresponding to the button click
+    sendMessage(responseMessage);
+  };
   const scrollToBottom = () => {
     const container = messagesContainerRef.current;
     if (container) {
@@ -124,12 +141,10 @@ function Message() {
           timestamp: getTimestamp(),
           id: getUniqueMessageId(),
           buttons: [
-            "AI Bot Dev",
-            "Software Dev",
-            "DevOPS Work",
-            "Any Thing Special",
-            "Schedule Call",
-            "Send Email",
+            "AI BOT Development",
+            "Software Development",
+            "DevOps & cloud computing",
+            "Schedule Demo",
           ],
         };
 
