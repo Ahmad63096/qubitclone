@@ -103,8 +103,16 @@ body {
   flex: 1 1 auto;
   background-color: #f6f6f7;
   scrollbar-color: #fbfbfb33 #fbfbfb1a;
-  position: relative;;
+  position: relative;
+
+
+
+  background: linear-gradient(180deg, rgba(89, 12, 214, 0.1), rgba(233, 58, 99, 0.1));
+  /* border-radius: 15px; */
+  padding: 10px;
+  z-index: 1;
 }
+
 /* .messages::before{
   position: fixed;
   top: 0;
@@ -119,6 +127,61 @@ body {
   opacity: 0.1;
   z-index: -1;
 } */
+.messages::before {
+  position: fixed;
+  content: "";
+  width: 100%;
+  height: 100%;
+  top: 50px;
+  left: 0;
+  background: radial-gradient(circle at top left, #590cd6, transparent 70%);
+  clip-path: polygon(0 0, 70% 10%, 40% 70%, 0 100%);
+  z-index: -1;
+  opacity: 0.4;
+  animation: moveShapesConfined 6s linear infinite alternate;
+}
+
+.messages::after {
+  position: fixed;
+  content: "";
+  width: 100%;
+  height: 100%;
+  bottom: 120px;
+  right: 10px;
+  background: radial-gradient(circle at bottom right, #e93a63, transparent 70%);
+  clip-path: polygon(100% 100%, 70% 90%, 90% 30%, 100% 0%);
+  z-index: -1;
+  opacity: 0.3;
+  animation: moveShapesConfinedReverse 6s linear infinite alternate;
+}
+
+@keyframes moveShapesConfined {
+  0% {
+    transform: translate(0px, 0px);
+  }
+
+  100% {
+    transform: translate(10px, 10px);
+  }
+}
+
+@keyframes moveShapesConfinedReverse {
+  0% {
+    transform: translate(10px, 10px);
+  }
+
+  100% {
+    transform: translate(0px, 0px);
+  }
+}
+
+
+
+
+
+
+
+
 
 .chat-wrap {
   display: flex;
@@ -197,6 +260,7 @@ body {
   background-size: contain;
   background-repeat: no-repeat;
   border: 1px solid #0000001f;
+  background-color: white;
 }
 
 .messages li.other:after {
@@ -289,8 +353,8 @@ body {
   height: 37px;
   border-radius: 0px 0px 5px 5px;
   position: relative;
-  margin: 0 10px;
-  background-color: #f6f6f7;
+  /* margin: 0 10px; */
+  background-color: #f1dfe5;
 }
 
 .footer .text-box {
@@ -379,6 +443,21 @@ body {
 }
 
 .copyright img {
+  height: 12px;
+  width: auto;
+}
+
+.copyright-two {
+  font-size: 10px;
+  text-align: center;
+  /* margin: 12px; */
+  padding: 21px;
+  margin: 0;
+  font-weight: 300;
+  background-color: #f1dfe5;
+}
+
+.copyright-two img {
   height: 12px;
   width: auto;
 }
@@ -714,15 +793,20 @@ body {
     right: 0;
   }
 }
-.typing img{
+.typing{
+  background: #f1dfe5;;
+}
+.typing img {
   width: 50px;
   height: auto;
   position: fixed;
-  bottom: 30%;
+  bottom: 16%;
   left: 7%;
 }
-.buttons-container button{
-  border: 1px solid #0000001f;
+
+.buttons-container button {
+  /* border: 1px solid #0000001f; */
   padding: 10px;
   margin: 4px;
+  background-color: white;
 }
