@@ -28,4 +28,21 @@ function getSessionId() {
   return sessionId;
 }
 
-export { animateBotReply, getSessionId};
+
+async function getVisitorIp() {
+  try {
+      const response = await fetch("https://api.ipify.org?format=json");
+      if (!response.ok) {
+          throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+      console.log("Visitor's IP address:", data.ip); // Correctly log the IP address
+      return data.ip; // Return only the IP address
+
+  } catch (error) {
+      console.error("Error fetching IP address:", error);
+      return null;
+  }
+}
+
+export { animateBotReply, getSessionId,getVisitorIp};

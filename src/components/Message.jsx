@@ -2,16 +2,15 @@ import { useState, useRef, useEffect } from "react";
 import powerby from "../assets/images/footerlogo.png";
 import Svg, { Emoji } from "./Svg";
 import typing from "../assets/images/typing.gif";
-import { animateBotReply } from "./Function";
-
+import { animateBotReply, getSessionId, getVisitorIp } from "./Function";
 function Message() {
   const [messages, setMessages] = useState([]);
   const [currentMessage, setCurrentMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [inactivityTimeout, setInactivityTimeout] = useState(null);
+  const [sessionEnded, setSessionEnded] = useState(false);
   const messagesContainerRef = useRef(null);
   const inputRef = useRef(null);
-  const ip = "103.8.112.36";
-
   const getTimestamp = () => {
     const now = new Date();
     const hours = now.getHours() % 12 || 12;
@@ -19,22 +18,14 @@ function Message() {
     const ampm = now.getHours() >= 12 ? "pm" : "am";
     return `${hours}:${minutes} ${ampm}`;
   };
-  function generateSessionId() {
-    return '_' + Math.random().toString(36).substr(2, 9);
-  }
-  function getSessionId() {
-    let sessionId = localStorage.getItem('session_id');
-    if (!sessionId) {
-      sessionId = generateSessionId();
-      localStorage.setItem('session_id', sessionId);
-      console.log('New session created:', sessionId);
-    } else {
-      console.log('Existing session:', sessionId);
-    }
-    return sessionId;
-  }
   const getUniqueMessageId = () => Date.now();
   const sendMessage = async (message = currentMessage) => {
+    if (sessionEnded) {
+      localStorage.removeItem("session_id");
+      setSessionEnded(false);
+    }
+
+    resetInactivityTimer()
     if (message.trim()) {
       const userMessage = {
         sender: "user",
@@ -50,13 +41,10 @@ function Message() {
       try {
         const botReply = await fetchBotReply(message);
         console.log("bot reply", botReply);
-
         if (botReply) {
           const mainResponse = botReply.main_response?.trim();
           const followUpQuestion = botReply.follow_up_question?.trim();
           const showButton = botReply.show_button === 1;
-
-          // Display main response if available
           if (mainResponse) {
             const mainResponseMessage = {
               sender: "bot",
@@ -67,8 +55,6 @@ function Message() {
             setMessages((prevMessages) => [...prevMessages, mainResponseMessage]);
             setTimeout(() => animateBotReply(mainResponseMessage.id), 0);
           }
-
-          // Display follow-up question if available
           if (followUpQuestion) {
             setTimeout(() => {
               const followUpMessage = {
@@ -81,13 +67,11 @@ function Message() {
               setTimeout(() => animateBotReply(followUpMessage.id), 0);
             }, 2000);
           }
-
-          // Display suggestion buttons if showButton is true
           if (showButton) {
             setTimeout(() => {
               const buttonMessage = {
                 sender: "bot",
-                text: "", // Avoid repeating the previous text
+                text: "",
                 timestamp: getTimestamp(),
                 id: getUniqueMessageId(),
                 buttons: [
@@ -98,7 +82,6 @@ function Message() {
                 ],
               };
               setMessages((prevMessages) => {
-                // Ensure buttons are added without duplicating the previous bot message
                 const updatedMessages = [...prevMessages];
                 if (!prevMessages.some(msg => msg.buttons)) {
                   updatedMessages.push(buttonMessage);
@@ -116,17 +99,56 @@ function Message() {
       }
     }
   };
+  const resetInactivityTimer = () => {
+    if (inactivityTimeout) {
+      clearTimeout(inactivityTimeout);
+    }
 
+    // First timeout for waiting message (1 minute)
+    const timeout = setTimeout(() => {
+      showWaitingMessage();
+      // Second timeout for thank you message and session end (2 minutes total)
+      const thankYouTimeout = setTimeout(() => {
+        showThankYouMessage();
+        setSessionEnded(true);
+      }, 60000);
+      setInactivityTimeout(thankYouTimeout);
+    }, 60000);
+
+    setInactivityTimeout(timeout);
+  };
+
+  const showWaitingMessage = () => {
+    const waitingMessage = {
+      sender: "bot",
+      text: "Are you still there? Feel free to ask any questions!",
+      timestamp: getTimestamp(),
+      id: getUniqueMessageId(),
+    };
+    setMessages((prevMessages) => [...prevMessages, waitingMessage]);
+  };
+
+  const showThankYouMessage = () => {
+    const thankYouMessage = {
+      sender: "bot",
+      text: "Thank you for visiting! The session has ended.",
+      timestamp: getTimestamp(),
+      id: getUniqueMessageId(),
+    };
+    setMessages((prevMessages) => [...prevMessages, thankYouMessage]);
+    localStorage.removeItem("session_id"); // Clear session ID
+  };
   const fetchBotReply = async (message) => {
     const zoneTime = new Date().toLocaleString("en-US", { timeZone: "Asia/Karachi" });
+    const ip = await getVisitorIp();
     const data = {
       session_id: getSessionId(),
       message,
       Zone: "Asia/Karachi",
       zoneTime,
-      ip,
+      ip: ip || "IP not available",
     };
-
+    console.log('message data', data);
     const response = await fetch("https://bot.devspandas.com/v1/devbot/chat", {
       method: "POST",
       headers: {
@@ -134,15 +156,17 @@ function Message() {
       },
       body: JSON.stringify(data),
     });
-
     if (!response.ok) {
       throw new Error("Failed to fetch bot reply");
     }
-
     return response.json();
   };
-
   const handleButtonClick = (buttonText) => {
+    if (sessionEnded) {
+      localStorage.removeItem("session_id");
+      setSessionEnded(false);
+    }
+    resetInactivityTimer();
     let responseMessage = "";
     const buttonMessages = {
       "AI BOT Development": "I want to know about AI chatbots.",
@@ -170,40 +194,60 @@ function Message() {
     localStorage.removeItem('session_id');
   }, []);
   useEffect(() => {
+    return () => {
+      if (inactivityTimeout) {
+        clearTimeout(inactivityTimeout);
+      }
+    };
+  }, [inactivityTimeout]);
+  useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
+  // useEffect(() => {
+  //   const fetchGreetingMessage = async () => {
+  //     try {
+  //       const response = await fetch("https://bot.devspandas.com/api/config/get_greetings_message");
+  //       const data = await response.json();
+  //       const greetingMessage = {
+  //         sender: "bot",
+  //         text: data.data,
+  //         timestamp: getTimestamp(),
+  //         id: getUniqueMessageId(),
+  //       };
+  //       setMessages([greetingMessage]);
+  //       setTimeout(() => animateBotReply(greetingMessage.id), 0);
+  //     } catch (error) {
+  //       console.error("Error fetching the greeting message:", error);
+  //     }
+  //   };
+  //   fetchGreetingMessage();
+  // }, []);
   useEffect(() => {
     const fetchGreetingMessage = async () => {
       try {
         const response = await fetch("https://bot.devspandas.com/api/config/get_greetings_message");
         const data = await response.json();
-
         const greetingMessage = {
           sender: "bot",
           text: data.data,
           timestamp: getTimestamp(),
           id: getUniqueMessageId(),
         };
-
         setMessages([greetingMessage]);
         setTimeout(() => animateBotReply(greetingMessage.id), 0);
+        resetInactivityTimer(); // Start inactivity timer after greeting message
       } catch (error) {
         console.error("Error fetching the greeting message:", error);
       }
     };
-
     fetchGreetingMessage();
   }, []);
-
   return (
     <>
       <ul ref={messagesContainerRef} className="messages">
         {messages.map((msg) => (
-          // Check if the message has buttons
           msg.buttons ? (
             <div key={msg.id} id={`message-${msg.id}`} className="buttons-container">
-              {/* Only render <li> if there's content in the message */}
               {msg.text && (
                 <li className="other">
                   {msg.text}
@@ -231,7 +275,6 @@ function Message() {
           <img src={typing} alt="Typing indicator" />
         </li>
       )}
-
       <div className="footer">
         <textarea
           ref={inputRef}
@@ -254,11 +297,7 @@ function Message() {
         <button id="emojibutton">
           <i className="fa-regular fa-face-smile"></i>
         </button>
-        <button
-          id="sendMessage"
-          onClick={sendMessage}
-          disabled={!currentMessage.trim()}
-        >
+        <button id="sendMessage" onClick={sendMessage} disabled={!currentMessage.trim()}>
           <Svg />
         </button>
       </div>
@@ -268,850 +307,4 @@ function Message() {
     </>
   );
 }
-
 export default Message;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// import { useState, useRef, useEffect } from "react";
-// import powerby from "../assets/images/footerlogo.png";
-// import Svg, { Emoji } from "./Svg";
-// import typing from "../assets/images/typing.gif";
-// import { animateBotReply } from "./Function";
-// function Message() {
-//   const [messages, setMessages] = useState([]);
-//   const [currentMessage, setCurrentMessage] = useState("");
-//   const [isTyping, setIsTyping] = useState(false);
-//   const [showButtons, setShowButtons] = useState(false);
-//   const messagesContainerRef = useRef(null);
-//   const inputRef = useRef(null);
-//   const sessionId = "_fi68ybtky";
-//   const ip = "103.8.112.36";
-//   const getTimestamp = () => {
-//     const now = new Date();
-//     const hours = now.getHours() % 12 || 12;
-//     const minutes = String(now.getMinutes()).padStart(2, "0");
-//     const ampm = now.getHours() >= 12 ? "pm" : "am";
-//     return `${hours}:${minutes} ${ampm}`;
-//   };
-//   const getUniqueMessageId = () => {
-//     return Date.now();
-//   };
-//   const sendMessage = async (message = currentMessage) => {
-//     if (message.trim()) {
-//       const userMessage = {
-//         sender: "user",
-//         text: message,
-//         timestamp: getTimestamp(),
-//         id: getUniqueMessageId(),
-//       };
-//       setMessages((prevMessages) => [...prevMessages, userMessage]);
-//       setCurrentMessage("");
-//       inputRef.current?.focus();
-//       setIsTyping(true);
-//       try {
-//         const botReply = await fetchBotReply(message);
-//         if (botReply) {
-//           setTimeout(() => {
-//             const firstReply = {
-//               sender: "bot",
-//               text: botReply.main_response,
-//               timestamp: getTimestamp(),
-//               id: getUniqueMessageId(),
-//             };
-//             setMessages((prevMessages) => [...prevMessages, firstReply]);
-//             setTimeout(() => animateBotReply(firstReply.id), 0);
-//             if (botReply.follow_up_question && botReply.follow_up_question.trim()) {
-//               setTimeout(() => {
-//                 const secondReply = {
-//                   sender: "bot",
-//                   text: botReply.follow_up_question,
-//                   timestamp: getTimestamp(),
-//                   id: getUniqueMessageId(),
-//                 };
-//                 setMessages((prevMessages) => [...prevMessages, secondReply]);
-//                 setTimeout(() => animateBotReply(secondReply.id), 0);
-//               }, 2000);
-//             }
-//           }, 0);
-//         }
-//       } catch (error) {
-//         console.error("Error fetching bot reply:", error);
-//       } finally {
-//         setIsTyping(false);
-//       }
-//     }
-//   };
-//   const fetchBotReply = async (message) => {
-//     const zoneTime = new Date().toLocaleString("en-US", { timeZone: "Asia/Karachi" });
-//     const data = {
-//       session_id: sessionId,
-//       message: message,
-//       Zone: "Asia/Karachi",
-//       zoneTime: zoneTime,
-//       ip: ip,
-//     };
-//     console.log("Sending chat message", data);
-//     const response = await fetch("https://bot.devspandas.com/v1/devbot/chat", {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//       body: JSON.stringify(data),
-//     });
-//     if (!response.ok) {
-//       throw new Error("Failed to fetch bot reply");
-//     }
-//     const result = await response.json();
-//     console.log("API response", result);
-//     return result;
-//   };
-//   const handleInputChange = (e) => {
-//     setCurrentMessage(e.target.value);
-//   };
-//   const handleKeyPress = (e) => {
-//     if (e.key === "Enter" && !e.shiftKey) {
-//       e.preventDefault();
-//       sendMessage();
-//     }
-//   };
-//   const scrollToBottom = () => {
-//     const container = messagesContainerRef.current;
-//     if (container) {
-//       container.scrollTo({
-//         top: container.scrollHeight,
-//         behavior: "smooth",
-//       });
-//     }
-//   };
-//   useEffect(() => {
-//     scrollToBottom();
-//   }, [messages]);
-//   useEffect(() => {
-//     const fetchGreetingMessage = async () => {
-//       try {
-//         const response = await fetch("https://bot.devspandas.com/api/config/get_greetings_message");
-//         const data = await response.json();
-//         const greetingMessage = {
-//           sender: "bot",
-//           text: data.data,
-//           timestamp: getTimestamp(),
-//           id: getUniqueMessageId(),
-//         };
-//         setMessages([greetingMessage]);
-//         setTimeout(() => animateBotReply(greetingMessage.id), 0);
-//         setTimeout(() => {
-//           setShowButtons(true);
-//         }, 2000);
-//       } catch (error) {
-//         console.error("Error fetching the greeting message:", error);
-//       }
-//     };
-//     fetchGreetingMessage();
-//   }, []);
-//   const handleButtonClick = (buttonText) => {
-//     sendMessage(buttonText);
-//   };
-//   return (
-//     <>
-//       <ul ref={messagesContainerRef} className="messages">
-//         {messages.map((msg) => (
-//           <li key={msg.id} id={`message-${msg.id}`} className={msg.sender === "user" ? "self" : "other"}>
-//             {msg.text}
-//             <div className="timestamp">{msg.timestamp}</div>
-//           </li>
-//         ))}
-//       </ul>
-//       {isTyping && (
-//         <li className="typing">
-//           <img src={typing} alt="Typing indicator" />
-//         </li>
-//       )}
-//       {showButtons && (
-//         <div className="buttons-container">
-//           <button onClick={() => handleButtonClick("AI Bot Dev")}>AI Bot Dev</button>
-//           <button onClick={() => handleButtonClick("Software Dev")}>Software Dev</button>
-//           <button onClick={() => handleButtonClick("DevOPS Work")}>DevOPS Work</button>
-//           <button onClick={() => handleButtonClick("Anythingspecial")}>Any Thing Special</button>
-//           <button onClick={() => handleButtonClick("Schedule Call")}>Schedule Call</button>
-//           <button onClick={() => handleButtonClick("Send Email")}>Send Email</button>
-//         </div>
-//       )}
-//       <div className="footer">
-//         <textarea
-//           ref={inputRef}
-//           className="text-box"
-//           value={currentMessage}
-//           onChange={handleInputChange}
-//           onKeyPress={handleKeyPress}
-//           placeholder="Enter here...."
-//           rows={1}
-//           autoFocus
-//         />
-//         <button id="fileadd">
-//           <Emoji />
-//         </button>
-//         <button id="emojibutton">
-//           <i className="fa-regular fa-face-smile"></i>
-//         </button>
-//         <button
-//           id="sendMessage"
-//           onClick={sendMessage}
-//           disabled={!currentMessage.trim()}
-//         >
-//           <Svg />
-//         </button>
-//       </div>
-//       <p className="copyright">
-//         Powered by <img src={powerby} alt="Powered by logo" />
-//       </p>
-//     </>
-//   );
-// }
-// export default Message;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// import { useState, useRef, useEffect } from "react";
-// import powerby from "../assets/images/footerlogo.png";
-// import Svg, { Emoji } from "./Svg";
-// import typing from "../assets/images/typing.gif";
-// import { animateBotReply } from "./Function";
-
-// function Message() {
-//   const [messages, setMessages] = useState([]);
-//   const [currentMessage, setCurrentMessage] = useState("");
-//   const [isTyping, setIsTyping] = useState(false);
-//   const [showButtons, setShowButtons] = useState(false);
-//   const messagesContainerRef = useRef(null);
-//   const inputRef = useRef(null);
-//   const sessionId = "_fi68ybtky";
-//   const ip = "103.8.112.36";
-
-//   const getTimestamp = () => {
-//     const now = new Date();
-//     const hours = now.getHours() % 12 || 12;
-//     const minutes = String(now.getMinutes()).padStart(2, "0");
-//     const ampm = now.getHours() >= 12 ? "pm" : "am";
-//     return `${hours}:${minutes} ${ampm}`;
-//   };
-
-//   const getUniqueMessageId = () => {
-//     return Date.now();
-//   };
-//   const sendMessage = async () => {
-//     if (currentMessage.trim()) {
-//       const userMessage = {
-//         sender: "user",
-//         text: currentMessage,
-//         timestamp: getTimestamp(),
-//         id: getUniqueMessageId(),
-//       };
-//       setMessages((prevMessages) => [...prevMessages, userMessage]);
-//       setCurrentMessage("");
-//       inputRef.current?.focus();
-//       setIsTyping(true);
-//       try {
-//         const botReply = await fetchBotReply(currentMessage);
-//         if (botReply) {
-//           setTimeout(() => {
-//             const firstReply = {
-//               sender: "bot",
-//               text: botReply.main_response,
-//               timestamp: getTimestamp(),
-//               id: getUniqueMessageId(),
-//             };
-//             setMessages((prevMessages) => [...prevMessages, firstReply]);
-//             setTimeout(() => animateBotReply(firstReply.id), 0);
-//             if (botReply.follow_up_question && botReply.follow_up_question.trim()) {
-//               setTimeout(() => {
-//                 const secondReply = {
-//                   sender: "bot",
-//                   text: botReply.follow_up_question,
-//                   timestamp: getTimestamp(),
-//                   id: getUniqueMessageId(),
-//                 };
-//                 setMessages((prevMessages) => [...prevMessages, secondReply]);
-//                 setTimeout(() => animateBotReply(secondReply.id), 0);
-//               }, 2000);
-//             }
-//           }, 0);
-//         }
-//       } catch (error) {
-//         console.error("Error fetching bot reply:", error);
-//       } finally {
-//         setIsTyping(false);
-//       }
-//     }
-//   };
-//   const fetchBotReply = async (message) => {
-//     const zoneTime = new Date().toLocaleString("en-US", { timeZone: "Asia/Karachi" });
-//     const data = {
-//       session_id: sessionId,
-//       message: message,
-//       Zone: "Asia/Karachi",
-//       zoneTime: zoneTime,
-//       ip: ip,
-//     };
-//     console.log("Sending chat message", data);
-//     const response = await fetch("https://bot.devspandas.com/v1/devbot/chat", {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//       body: JSON.stringify(data),
-//     });
-//     if (!response.ok) {
-//       throw new Error("Failed to fetch bot reply");
-//     }
-//     const result = await response.json();
-//     console.log("API response", result);
-//     return result;
-//   };
-//   const handleInputChange = (e) => {
-//     setCurrentMessage(e.target.value);
-//   };
-//   const handleKeyPress = (e) => {
-//     if (e.key === "Enter" && !e.shiftKey) {
-//       e.preventDefault();
-//       sendMessage();
-//     }
-//   };
-//   const scrollToBottom = () => {
-//     const container = messagesContainerRef.current;
-//     if (container) {
-//       container.scrollTo({
-//         top: container.scrollHeight,
-//         behavior: "smooth",
-//       });
-//     }
-//   };
-
-//   useEffect(() => {
-//     scrollToBottom();
-//   }, [messages]);
-
-//   useEffect(() => {
-//     const fetchGreetingMessage = async () => {
-//       try {
-//         const response = await fetch("https://bot.devspandas.com/api/config/get_greetings_message");
-//         const data = await response.json();
-//         const greetingMessage = {
-//           sender: "bot",
-//           text: data.data,
-//           timestamp: getTimestamp(),
-//           id: getUniqueMessageId(),
-//         };
-//         setMessages([greetingMessage]);
-//         setTimeout(() => animateBotReply(greetingMessage.id), 0);
-//         setTimeout(() => {
-//           setShowButtons(true);
-//         }, 2000);
-//       } catch (error) {
-//         console.error("Error fetching the greeting message:", error);
-//       }
-//     };
-//     fetchGreetingMessage();
-//   }, []);
-//   return (
-//     <>
-//       <ul ref={messagesContainerRef} className="messages">
-//         {messages.map((msg) => (
-//           <li
-//             key={msg.id}
-//             id={`message-${msg.id}`}
-//             className={msg.sender === "user" ? "self" : "other"}
-//           >
-//             {msg.text}
-//             <div className="timestamp">{msg.timestamp}</div>
-//           </li>
-//         ))}
-//       </ul>
-//       {isTyping && (
-//         <li className="typing">
-//           <img src={typing} alt="Typing indicator" />
-//         </li>
-//       )}
-//       {showButtons && (
-//         <div className="buttons-container">
-//           <button onClick={() => console.log("Button 1 clicked")}>AI Bot Dev</button>
-//           <button onClick={() => console.log("Button 2 clicked")}>Software Dev</button>
-//           <button onClick={() => console.log("Button 3 clicked")}>DevOPS Work</button>
-//           <button onClick={() => console.log("Button 1 clicked")}>Anythingspecial</button>
-//           <button onClick={() => console.log("Button 2 clicked")}>Schedule Call</button>
-//           <button onClick={() => console.log("Button 3 clicked")}>Send Email</button>
-//         </div>
-//       )}
-//       <div className="footer">
-//         <textarea
-//           ref={inputRef}
-//           className="text-box"
-//           value={currentMessage}
-//           onChange={handleInputChange}
-//           onKeyPress={handleKeyPress}
-//           placeholder="Enter here...."
-//           rows={1}
-//           autoFocus
-//         />
-//         <button id="fileadd">
-//           <Emoji />
-//         </button>
-//         <button id="emojibutton">
-//           <i className="fa-regular fa-face-smile"></i>
-//         </button>
-//         <button
-//           id="sendMessage"
-//           onClick={sendMessage}
-//           disabled={!currentMessage.trim()}
-//         >
-//           <Svg />
-//         </button>
-//       </div>
-//       <p className="copyright">
-//         Powered by <img src={powerby} alt="Powered by logo" />
-//       </p>
-//     </>
-//   );
-// }
-// export default Message;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// import { useState, useRef, useEffect } from "react";
-// import powerby from "../assets/images/footerlogo.png";
-// import Svg, { Emoji } from "./Svg";
-// import typing from "../assets/images/typing.gif";
-// import { animateBotReply } from "./Function";
-// function Message() {
-//   const [messages, setMessages] = useState([]);
-//   const [currentMessage, setCurrentMessage] = useState("");
-//   const [isTyping, setIsTyping] = useState(false);
-//   const messagesContainerRef = useRef(null);
-//   const inputRef = useRef(null);
-//   const sessionId = "_fi68ybtky";
-//   const ip = "103.8.112.36";
-//   const getTimestamp = () => {
-//     const now = new Date();
-//     const hours = now.getHours() % 12 || 12;
-//     const minutes = String(now.getMinutes()).padStart(2, "0");
-//     const ampm = now.getHours() >= 12 ? "pm" : "am";
-//     return `${hours}:${minutes} ${ampm}`;
-//   };
-//   const getUniqueMessageId = () => {
-//     return Date.now();
-//   };
-//   const sendMessage = async () => {
-//     if (currentMessage.trim()) {
-//       const userMessage = {
-//         sender: "user",
-//         text: currentMessage,
-//         timestamp: getTimestamp(),
-//         id: getUniqueMessageId(),
-//       };
-//       setMessages((prevMessages) => [...prevMessages, userMessage]);
-//       setCurrentMessage("");
-//       inputRef.current?.focus();
-//       setIsTyping(true);
-//       try {
-//         const botReply = await fetchBotReply(currentMessage);
-//         if (botReply) {
-//           setTimeout(() => {
-//             const firstReply = {
-//               sender: "bot",
-//               text: botReply.main_response,
-//               timestamp: getTimestamp(),
-//               id: getUniqueMessageId(),
-//             };
-//             setMessages((prevMessages) => [...prevMessages, firstReply]);
-//             setTimeout(() => animateBotReply(firstReply.id), 0);
-//             if (botReply.follow_up_question && botReply.follow_up_question.trim()) {
-//               setTimeout(() => {
-//                 const secondReply = {
-//                   sender: "bot",
-//                   text: botReply.follow_up_question,
-//                   timestamp: getTimestamp(),
-//                   id: getUniqueMessageId(),
-//                 };
-//                 setMessages((prevMessages) => [...prevMessages, secondReply]);
-//                 setTimeout(() => animateBotReply(secondReply.id), 0);
-//               }, 2000);
-//             }
-//           }, 0);
-//         }
-//       } catch (error) {
-//         console.error("Error fetching bot reply:", error);
-//       } finally {
-//         setIsTyping(false);
-//       }
-//     }
-//   };
-//   const fetchBotReply = async (message) => {
-//     const zoneTime = new Date().toLocaleString("en-US", { timeZone: "Asia/Karachi" });
-//     const data = {
-//       session_id: sessionId,
-//       message: message,
-//       Zone: "Asia/Karachi",
-//       zoneTime: zoneTime,
-//       ip: ip,
-//     };
-//     console.log("Sending chat message", data);
-//     const response = await fetch("https://bot.devspandas.com/v1/devbot/chat", {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//       body: JSON.stringify(data),
-//     });
-//     if (!response.ok) {
-//       throw new Error("Failed to fetch bot reply");
-//     }
-//     const result = await response.json();
-//     console.log("API response", result);
-//     return result;
-//   };
-//   const handleInputChange = (e) => {
-//     setCurrentMessage(e.target.value);
-//   };
-//   const handleKeyPress = (e) => {
-//     if (e.key === "Enter" && !e.shiftKey) {
-//       e.preventDefault();
-//       sendMessage();
-//     }
-//   };
-//   const scrollToBottom = () => {
-//     const container = messagesContainerRef.current;
-//     if (container) {
-//       container.scrollTo({
-//         top: container.scrollHeight,
-//         behavior: "smooth",
-//       });
-//     }
-//   };
-//   useEffect(() => {
-//     scrollToBottom();
-//   }, [messages]);
-//   useEffect(() => {
-//     const fetchGreetingMessage = async () => {
-//       try {
-//         const response = await fetch("https://bot.devspandas.com/api/config/get_greetings_message");
-//         const data = await response.json();
-//         const greetingMessage = {
-//           sender: "bot",
-//           text: data.data,
-//           timestamp: getTimestamp(),
-//           id: getUniqueMessageId(),
-//         };
-//         setMessages([greetingMessage]);
-//         setTimeout(() => animateBotReply(greetingMessage.id), 0);
-//       } catch (error) {
-//         console.error("Error fetching the greeting message:", error);
-//       }
-//     };
-//     fetchGreetingMessage();
-//   }, []);
-//   return (
-//     <>
-//       <ul ref={messagesContainerRef} className="messages">
-//         {messages.map((msg) => (
-//           <li
-//             key={msg.id}
-//             id={`message-${msg.id}`}
-//             className={msg.sender === "user" ? "self" : "other"}
-//           >
-//             {msg.text}
-//             <div className="timestamp">{msg.timestamp}</div>
-//           </li>
-//         ))}
-//       </ul>
-//       {isTyping && (
-//         <li className="typing">
-//           <img src={typing} alt="Typing indicator" />
-//         </li>
-//       )}
-//       <div className="footer">
-//         <textarea
-//           ref={inputRef}
-//           className="text-box"
-//           value={currentMessage}
-//           onChange={handleInputChange}
-//           onKeyPress={handleKeyPress}
-//           placeholder="Enter here...."
-//           rows={1}
-//           autoFocus
-//         />
-//         <button id="fileadd">
-//           <Emoji />
-//         </button>
-//         <button id="emojibutton">
-//           <i className="fa-regular fa-face-smile"></i>
-//         </button>
-//         <button
-//           id="sendMessage"
-//           onClick={sendMessage}
-//           disabled={!currentMessage.trim()}
-//         >
-//           <Svg />
-//         </button>
-//       </div>
-//       <p className="copyright">
-//         Powered by <img src={powerby} alt="Powered by logo" />
-//       </p>
-//     </>
-//   );
-// }
-// export default Message;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// import { useState, useRef, useEffect } from "react";
-// import powerby from '../assets/images/footerlogo.png';
-// import Svg, { Emoji } from "./Svg";
-// function Message() {
-//   const [messages, setMessages] = useState([]);
-//   const [currentMessage, setCurrentMessage] = useState("");
-//   const messagesContainerRef = useRef(null);
-//   const inputRef = useRef(null);
-//   const getTimestamp = () => {
-//     const now = new Date();
-//     const hours = now.getHours() % 12 || 12;
-//     const minutes = String(now.getMinutes()).padStart(2, "0");
-//     const ampm = now.getHours() >= 12 ? "pm" : "am";
-//     return `${hours}:${minutes} ${ampm}`;
-//   };
-//   const sendMessage = () => {
-//     if (currentMessage.trim()) {
-//       const userMessage = {
-//         sender: "user",
-//         text: currentMessage,
-//         timestamp: getTimestamp(),
-//       };
-//       setMessages((prevMessages) => [...prevMessages, userMessage]);
-//       setCurrentMessage("");
-//       inputRef.current?.focus();
-//       setTimeout(() => {
-//         const botReply = {
-//           sender: "bot",
-//           text: "This is an automated reply.",
-//           timestamp: getTimestamp(),
-//         };
-//         setMessages((prevMessages) => [...prevMessages, botReply]);
-//       }, 1000);
-//     }
-//   };
-//   const handleInputChange = (e) => {
-//     setCurrentMessage(e.target.value);
-//   };
-//   const handleKeyPress = (e) => {
-//     if (e.key === "Enter" && !e.shiftKey) {
-//       e.preventDefault();
-//       sendMessage();
-//     }
-//   };
-//   const scrollToBottom = () => {
-//     const container = messagesContainerRef.current;
-//     if (container) {
-//       container.scrollTo({
-//         top: container.scrollHeight,
-//         behavior: "smooth",
-//       });
-//     }
-//   };
-//   useEffect(() => {
-//     scrollToBottom();
-//   }, [messages]);
-//   useEffect(() => {
-//     const fetchGreetingMessage = async () => {
-//       try {
-//         const response = await fetch("https://bot.devspandas.com/api/config/get_greetings_message");
-//         const data = await response.json();
-//         console.log('greatting message',data);
-//         const greetingMessage = {
-//           sender: "bot",
-//           text: data.data,
-//           timestamp: getTimestamp(),
-//         };
-//         setMessages([greetingMessage]);
-//       } catch (error) {
-//         console.error("Error fetching the greeting message:", error);
-//       }
-//     };
-//     fetchGreetingMessage();
-//   }, []);
-//   return (
-//     <>
-//       <ul ref={messagesContainerRef} className="messages">
-//         {messages.map((msg, index) => (
-//           <li key={index} className={msg.sender === "user" ? "self" : "other"}>
-//             {msg.text}
-//             <div className="timestamp">{msg.timestamp}</div>
-//           </li>
-//         ))}
-//       </ul>
-//       <div className="footer">
-//         <textarea
-//           ref={inputRef}
-//           className="text-box"
-//           value={currentMessage}
-//           onChange={handleInputChange}
-//           onKeyPress={handleKeyPress}
-//           placeholder="Enter here...."
-//           rows={1}
-//           autoFocus
-//         />
-//         <button id="fileadd">
-//           <Emoji />
-//         </button>
-//         <button id="emojibutton">
-//           <i className="fa-regular fa-face-smile"></i>
-//         </button>
-//         <button id="sendMessage" onClick={sendMessage} disabled={!currentMessage.trim()}>
-//           <Svg />
-//         </button>
-//       </div>
-//       <p className="copyright">
-//         Powered by <img src={powerby} alt="" />
-//       </p>
-//     </>
-//   );
-// }
-// export default Message;
