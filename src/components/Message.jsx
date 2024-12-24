@@ -62,24 +62,108 @@ function Message() {
     setMessages((prevMessages) => [...prevMessages, thankYouMessage]);
     localStorage.removeItem("session_id");
   };
+  // const sendMessage = async (message = currentMessage) => {
+  //   if (message.trim()) {
+  //     resetTimers();
+  //     startInactivityTimer();
+  //     const userMessage = {
+  //       sender: "user",
+  //       text: message,
+  //       timestamp: getTimestamp(),
+  //       id: getUniqueMessageId(),
+  //     };
+  //     setMessages((prevMessages) => [...prevMessages, userMessage]);
+  //     setCurrentMessage("");
+  //     inputRef.current?.focus();
+  //     setIsTyping(true);
+  //     try {
+  //       const botReply = await fetchBotReply(message);
+  //       if (botReply) {
+  //         const { main_response, follow_up_question, show_button } = botReply;
+  //         if (main_response?.trim()) {
+  //           const mainMessages = splitMessage(main_response.trim());
+  //           mainMessages.forEach((messageChunk, index) => {
+  //             setTimeout(() => {
+  //               const mainMessage = {
+  //                 sender: "bot",
+  //                 text: messageChunk,
+  //                 timestamp: getTimestamp(),
+  //                 id: getUniqueMessageId() + index,
+  //               };
+  //               setMessages((prevMessages) => [...prevMessages, mainMessage]);
+  //               setTimeout(() => animateBotReply(mainMessage.id), 0); 
+  //             }, index * 1000);
+  //           });
+  //         }
+  //         if (follow_up_question?.trim()) {
+  //           const followUpMessages = splitMessage(follow_up_question.trim());
+  //           followUpMessages.forEach((messageChunk, index) => {
+  //             setTimeout(() => {
+  //               const followUpMessage = {
+  //                 sender: "bot",
+  //                 text: messageChunk,
+  //                 timestamp: getTimestamp(),
+  //                 id: getUniqueMessageId() + index,
+  //               };
+  //               setMessages((prevMessages) => [...prevMessages, followUpMessage]);
+  //               setTimeout(() => animateBotReply(followUpMessage.id), 0); 
+  //             }, 2000 + index * 1000);
+  //           });
+  //         }
+  //         if (show_button) {
+  //           setTimeout(() => {
+  //             const buttonMessage = {
+  //               sender: "bot",
+  //               text: "",
+  //               timestamp: getTimestamp(),
+  //               id: getUniqueMessageId(),
+  //               buttons: [
+  //                 "AI BOT Development",
+  //                 "Software Development",
+  //                 "DevOps & cloud computing",
+  //                 "Schedule Demo",
+  //               ],
+  //             };
+  //             setMessages((prevMessages) => {
+  //               if (!prevMessages.some((msg) => msg.buttons)) {
+  //                 return [...prevMessages, buttonMessage];
+  //               }
+  //               return prevMessages;
+  //             });
+  //             setTimeout(() => animateBotReply(buttonMessage.id), 0);
+  //           }, 3000);
+  //         }
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching bot reply:", error);
+  //     } finally {
+  //       setIsTyping(false);
+  //     }
+  //   }
+  // };
   const sendMessage = async (message = currentMessage) => {
     if (message.trim()) {
       resetTimers();
       startInactivityTimer();
+  
       const userMessage = {
         sender: "user",
         text: message,
         timestamp: getTimestamp(),
         id: getUniqueMessageId(),
       };
+  
       setMessages((prevMessages) => [...prevMessages, userMessage]);
       setCurrentMessage("");
       inputRef.current?.focus();
       setIsTyping(true);
+  
       try {
         const botReply = await fetchBotReply(message);
+        console.log('boot reply',botReply);
         if (botReply) {
           const { main_response, follow_up_question, show_button } = botReply;
+  
           if (main_response?.trim()) {
             const mainMessages = splitMessage(main_response.trim());
             mainMessages.forEach((messageChunk, index) => {
@@ -91,25 +175,28 @@ function Message() {
                   id: getUniqueMessageId() + index,
                 };
                 setMessages((prevMessages) => [...prevMessages, mainMessage]);
-                setTimeout(() => animateBotReply(mainMessage.id), 0); 
-              }, index * 1000);
+                setTimeout(() => animateBotReply(mainMessage.id), 0); // Animate bot reply
+  
+                // After the last chunk of main response, display follow-up question
+                if (index === mainMessages.length - 1 && follow_up_question?.trim()) {
+                  const followUpMessages = splitMessage(follow_up_question.trim());
+                  followUpMessages.forEach((questionChunk, qIndex) => {
+                    setTimeout(() => {
+                      const followUpMessage = {
+                        sender: "bot",
+                        text: questionChunk,
+                        timestamp: getTimestamp(),
+                        id: getUniqueMessageId() + qIndex,
+                      };
+                      setMessages((prevMessages) => [...prevMessages, followUpMessage]);
+                      setTimeout(() => animateBotReply(followUpMessage.id), 0);
+                    }, qIndex * 1000); // Delay each follow-up question chunk
+                  });
+                }
+              }, index * 1000); // Delay each main response chunk
             });
           }
-          if (follow_up_question?.trim()) {
-            const followUpMessages = splitMessage(follow_up_question.trim());
-            followUpMessages.forEach((messageChunk, index) => {
-              setTimeout(() => {
-                const followUpMessage = {
-                  sender: "bot",
-                  text: messageChunk,
-                  timestamp: getTimestamp(),
-                  id: getUniqueMessageId() + index,
-                };
-                setMessages((prevMessages) => [...prevMessages, followUpMessage]);
-                setTimeout(() => animateBotReply(followUpMessage.id), 0); 
-              }, 2000 + index * 1000);
-            });
-          }
+  
           if (show_button) {
             setTimeout(() => {
               const buttonMessage = {
@@ -153,27 +240,6 @@ function Message() {
     const responseMessage = buttonResponses[buttonText] || "Sorry, I didn't understand that.";
     sendMessage(responseMessage);
   };
-  // const splitMessage = (text, maxLength = 100) => {
-  //   const chunks = [];
-  //   let start = 0;
-  //   while (start < text.length) {
-  //     let end = start + maxLength;
-  //     if (end < text.length) {
-  //       const sentenceEndIndex = text.slice(end).search(/[.!?]/);
-  //       if (sentenceEndIndex !== -1) {
-  //         end += sentenceEndIndex + 1;
-  //       } else {
-  //         const nextSpaceIndex = text.slice(end).search(/\s/);
-  //         if (nextSpaceIndex !== -1) {
-  //           end += nextSpaceIndex;
-  //         }
-  //       }
-  //     }
-  //     chunks.push(text.substring(start, end).trim());
-  //     start = end;
-  //   }
-  //   return chunks;
-  // };
   const splitMessage = (text, maxLength = 100) => {
     const chunks = [];
     let start = 0;
@@ -191,7 +257,7 @@ function Message() {
         }
       }  
       const chunk = text.substring(start, end).trim();
-      if (chunk.length < 5 && end < text.length) {
+      if (chunk.length < 10 && end < text.length) {
         end += maxLength;
         const extendedChunk = text.substring(start, end).trim();
         if (extendedChunk.length > chunk.length) {
