@@ -63,11 +63,12 @@ function Message() {
     setMessages((prevMessages) => [...prevMessages, thankYouMessage]);
     localStorage.removeItem("session_id");
   };
+  
   const sendMessage = async (message = currentMessage) => {
     if (message.trim()) {
       resetTimers();
       startInactivityTimer();
-
+  
       const userMessage = {
         sender: "user",
         text: message,
@@ -78,41 +79,45 @@ function Message() {
       setCurrentMessage("");
       inputRef.current?.focus();
       setIsTyping(true);
+  
       try {
         const botReply = await fetchBotReply(message);
-        console.log('boot reply', botReply);
+        console.log("Bot reply:", botReply);
+  
         if (botReply) {
           const { main_response, follow_up_question, show_button } = botReply;
-          if (main_response?.trim()) {
-            const mainMessages = splitMessage(main_response.trim());
-            mainMessages.forEach((messageChunk, index) => {
-              setTimeout(() => {
-                const mainMessage = {
-                  sender: "bot",
-                  text: messageChunk,
-                  timestamp: getTimestamp(),
-                  id: getUniqueMessageId() + index,
-                };
-                setMessages((prevMessages) => [...prevMessages, mainMessage]);
-                setTimeout(() => animateBotReply(mainMessage.id), 0);
-                if (index === mainMessages.length - 1 && follow_up_question?.trim()) {
-                  const followUpMessages = splitMessage(follow_up_question.trim());
-                  followUpMessages.forEach((questionChunk, qIndex) => {
-                    setTimeout(() => {
-                      const followUpMessage = {
-                        sender: "bot",
-                        text: questionChunk,
-                        timestamp: getTimestamp(),
-                        id: getUniqueMessageId() + qIndex,
-                      };
-                      setMessages((prevMessages) => [...prevMessages, followUpMessage]);
-                      setTimeout(() => animateBotReply(followUpMessage.id), 0);
-                    }, qIndex * 1000);
-                  });
-                }
-              }, index * 1000);
-            });
+  
+          const displayMessages = async (response) => {
+            if (response?.trim()) {
+              const messages = splitMessage(response.trim());
+              for (let index = 0; index < messages.length; index++) {
+                const chunk = messages[index];
+                await new Promise((resolve) =>
+                  setTimeout(() => {
+                    const message = {
+                      sender: "bot",
+                      text: chunk,
+                      timestamp: getTimestamp(),
+                      id: getUniqueMessageId() + index,
+                    };
+                    setMessages((prevMessages) => [...prevMessages, message]);
+                    setTimeout(() => animateBotReply(message.id), 0);
+                    resolve();
+                  }, index * 1000)
+                );
+              }
+            }
+          };
+  
+          if (main_response?.trim() || follow_up_question?.trim()) {
+            if (main_response?.trim()) {
+              await displayMessages(main_response, "main_response");
+            }
+            if (follow_up_question?.trim()) {
+              await displayMessages(follow_up_question, "follow_up_question");
+            }
           }
+  
           if (show_button) {
             setTimeout(() => {
               const buttonMessage = {
@@ -143,7 +148,7 @@ function Message() {
         setIsTyping(false);
       }
     }
-  };
+  };  
   const handleButtonClick = (buttonText) => {
     resetTimers();
     startInactivityTimer();
@@ -156,44 +161,30 @@ function Message() {
     const responseMessage = buttonResponses[buttonText] || "Sorry, I didn't understand that.";
     sendMessage(responseMessage);
   };
-  
+
   const splitMessage = (text) => {
-    const regex = emojiRegex();  // Emoji regex
+    const regex = emojiRegex();
     const chunks = [];
     let start = 0;
-  
-    // Use a regex to match sentence-ending punctuation followed optionally by an emoji
     const sentenceEndRegex = /([.!?])(\s?|$)/;
-  
     while (start < text.length) {
-      // Find the first punctuation mark or emoji
       let sentenceEnd = text.slice(start).search(sentenceEndRegex);
-  
-      // If punctuation found, adjust end to that position
       if (sentenceEnd !== -1) {
-        let end = start + sentenceEnd + 1; // Include the punctuation mark in the chunk
-  
-        // Check if there's an emoji right after the punctuation mark
+        let end = start + sentenceEnd + 1;
         const emojiMatch = text.slice(start + sentenceEnd).match(regex);
         if (emojiMatch) {
           const emoji = emojiMatch[0];
           const emojiIndex = text.indexOf(emoji, end);
-          end = emojiIndex + emoji.length; // Include emoji in the same chunk
+          end = emojiIndex + emoji.length;
         }
-  
-        // Push the chunk to the array
         chunks.push(text.substring(start, end).trim());
-        start = end; // Move the starting point for the next chunk
+        start = end;
       } else {
-        // If no punctuation found, move to the next character (this is a safety case)
         break;
       }
     }
-  
     return chunks;
   };
-
-
   const fetchBotReply = async (message) => {
     const zoneTime = new Date().toLocaleString("en-US", { timeZone: "Asia/Karachi" });
     const ip = await getVisitorIp();
