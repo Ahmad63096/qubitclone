@@ -274,7 +274,8 @@ body {
   font-size: 10px;
   color: black;
   font-weight: 500;
-  width: 40px;
+  /* width: 40px; */
+  width: 80%;
 }
 
 .self .timestamp {
