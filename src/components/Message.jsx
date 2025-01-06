@@ -63,12 +63,12 @@ function Message() {
     setMessages((prevMessages) => [...prevMessages, thankYouMessage]);
     localStorage.removeItem("session_id");
   };
-  
+
   const sendMessage = async (message = currentMessage) => {
     if (message.trim()) {
       resetTimers();
       startInactivityTimer();
-  
+
       const userMessage = {
         sender: "user",
         text: message,
@@ -79,14 +79,14 @@ function Message() {
       setCurrentMessage("");
       inputRef.current?.focus();
       setIsTyping(true);
-  
+
       try {
         const botReply = await fetchBotReply(message);
         console.log("Bot reply:", botReply);
-  
+
         if (botReply) {
           const { main_response, follow_up_question, show_button } = botReply;
-  
+
           const displayMessages = async (response) => {
             if (response?.trim()) {
               const messages = splitMessage(response.trim());
@@ -108,7 +108,7 @@ function Message() {
               }
             }
           };
-  
+
           if (main_response?.trim() || follow_up_question?.trim()) {
             if (main_response?.trim()) {
               await displayMessages(main_response, "main_response");
@@ -117,7 +117,7 @@ function Message() {
               await displayMessages(follow_up_question, "follow_up_question");
             }
           }
-  
+
           if (show_button) {
             setTimeout(() => {
               const buttonMessage = {
@@ -148,7 +148,7 @@ function Message() {
         setIsTyping(false);
       }
     }
-  };  
+  };
   const handleButtonClick = (buttonText) => {
     resetTimers();
     startInactivityTimer();
@@ -166,7 +166,7 @@ function Message() {
     const regex = emojiRegex();
     const chunks = [];
     let start = 0;
-    const sentenceEndRegex = /([.!?])(\s?|$)/;
+    const sentenceEndRegex = /([.!?:])(\s?|$)/;
     while (start < text.length) {
       let sentenceEnd = text.slice(start).search(sentenceEndRegex);
       if (sentenceEnd !== -1) {
