@@ -166,7 +166,7 @@ function Message() {
     const regex = emojiRegex();
     const chunks = [];
     let start = 0;
-    const sentenceEndRegex = /([.!?:])(\s?|$)/;
+    const sentenceEndRegex = /([.!?])(\s?|$)/;
     while (start < text.length) {
       let sentenceEnd = text.slice(start).search(sentenceEndRegex);
       if (sentenceEnd !== -1) {
