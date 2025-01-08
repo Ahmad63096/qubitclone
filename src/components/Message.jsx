@@ -163,28 +163,87 @@ function Message() {
   };
 
   const splitMessage = (text) => {
-    const regex = emojiRegex();
-    const chunks = [];
-    let start = 0;
-    const sentenceEndRegex = /([!?])(\s?|$)/;
+    const regex = emojiRegex(); // Emoji regex to match emojis
+    const chunks = []; // Array to store sentence chunks
+    let start = 0; // Start position for text processing
+    const sentenceEndRegex = /([.!?])(\s?|$)/; // Regex to identify sentence-ending punctuation
+
     while (start < text.length) {
+      // Find the position of the next sentence-ending punctuation
       let sentenceEnd = text.slice(start).search(sentenceEndRegex);
+
       if (sentenceEnd !== -1) {
-        let end = start + sentenceEnd + 1;
-        const emojiMatch = text.slice(start + sentenceEnd).match(regex);
+        let end = start + sentenceEnd + 1; // Calculate where the sentence ends
+        const emojiMatch = text.slice(start + sentenceEnd).match(regex); // Look for emojis in the text chunk
+
         if (emojiMatch) {
-          const emoji = emojiMatch[0];
-          const emojiIndex = text.indexOf(emoji, end);
-          end = emojiIndex + emoji.length;
+          const emoji = emojiMatch[0]; // Get the emoji
+          const emojiIndex = text.indexOf(emoji, start); // Find the index of the emoji in the text
+
+          // Check if the emoji is a numbered emoji (e.g., 1️⃣, 2️⃣, etc.)
+          if (/\d️⃣/.test(emoji)) {
+            const beforeEmoji = text.substring(start, emojiIndex).trim(); // Text before the emoji
+            const afterEmoji = text.substring(emojiIndex, emojiIndex + emoji.length).trim(); // The emoji itself
+            const nextSentenceEnd = text.slice(emojiIndex).search(sentenceEndRegex);
+
+            if (beforeEmoji) {
+              chunks.push(beforeEmoji); // Push the text before the emoji as a chunk
+            }
+
+            if (nextSentenceEnd !== -1) {
+              const emojiChunkEnd = emojiIndex + nextSentenceEnd + 1; // End of sentence after the emoji
+              const emojiChunk = text.substring(emojiIndex, emojiChunkEnd).trim(); // Extract the full emoji chunk
+              chunks.push(emojiChunk);
+              start = emojiChunkEnd; // Move the start position
+            } else {
+              chunks.push(afterEmoji); // If no period after emoji, add emoji alone
+              start = emojiIndex + emoji.length; // Update start position
+            }
+            continue;
+          } else {
+            // Non-numbered emoji logic (retain previous behavior)
+            const emojiChunk = text.substring(start, emojiIndex + emoji.length).trim();
+            chunks.push(emojiChunk);
+            start = emojiIndex + emoji.length; // Update the start to process the next part
+            continue;
+          }
         }
+
+        // If no emoji was found, simply push the sentence chunk as it is
         chunks.push(text.substring(start, end).trim());
-        start = end;
+        start = end; // Update the start to process the next sentence
       } else {
+        // If no sentence-ending punctuation is found, add the remaining text
+        chunks.push(text.slice(start).trim());
         break;
       }
     }
-    return chunks;
+
+    return chunks; // Return the array of text chunks
   };
+  // const splitMessage = (text) => {
+  //   const regex = emojiRegex();
+  //   const chunks = [];
+  //   let start = 0;
+  //   const sentenceEndRegex = /([.!?])(\s?|$)/;
+  //   while (start < text.length) {
+  //     let sentenceEnd = text.slice(start).search(sentenceEndRegex);
+  //     if (sentenceEnd !== -1) {
+  //       let end = start + sentenceEnd + 1;
+  //       const emojiMatch = text.slice(start + sentenceEnd).match(regex);
+  //       if (emojiMatch) {
+  //         const emoji = emojiMatch[0];
+  //         const emojiIndex = text.indexOf(emoji, end);
+  //         end = emojiIndex + emoji.length;
+  //       }
+  //       chunks.push(text.substring(start, end).trim());
+  //       start = end;
+  //     } else {
+  //       break;
+  //     }
+  //   }
+  //   return chunks;
+  // };
   const fetchBotReply = async (message) => {
     const zoneTime = new Date().toLocaleString("en-US", { timeZone: "Asia/Karachi" });
     const ip = await getVisitorIp();
