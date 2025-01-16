@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import chaticon from '../assets/images/chaticon.png';
-import homeicon from '../assets/images/homeicon.png';
-import sendicon from '../assets/images/sendicon.png';
+// import './assets/css/v1.css';
+import chaticon from './assets/images/chaticon.png';
+import homeicon from './assets/images/homeicon.png';
+import sendicon from './assets/images/sendicon.png';
 import Message from './Message';
 import { Chat, Contact, Resources, Services } from './Svg';
-import powerby from '../assets/images/footerlogo.png';
+import powerby from './assets/images/footerlogo.png';
 function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [isChatTab, setIsChatTab] = useState(false);

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import powerby from "../assets/images/footerlogo.png";
+import powerby from "./assets/images/footerlogo.png";
 import Svg, { Emoji } from "./Svg";
-import typing from "../assets/images/typing.gif";
+import typing from "./assets/images/typing.gif";
 import { animateBotReply, getSessionId, getVisitorIp, splitMessage } from "./Function";
 // import emojiRegex from 'emoji-regex';
 function Message() {
@@ -189,6 +189,7 @@ function Message() {
       zoneTime,
       ip: ip || "IP not available",
     };
+    console.log("Sending data to the bot:", data);
     const response = await fetch("https://bot.devspandas.com/v1/devbot/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -206,6 +207,7 @@ function Message() {
       try {
         const response = await fetch("https://bot.devspandas.com/api/config/get_greetings_message");
         const data = await response.json();
+        console.log("data: " , data);
         const greetingMessage = {
           sender: "bot",
           text: data.data,
