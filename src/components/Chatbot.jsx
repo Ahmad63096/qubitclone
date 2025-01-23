@@ -25,7 +25,7 @@ function Chatbot() {
     // eslint-disable-next-line
     const timer = setTimeout(() => {
       setShowAnimation(true);
-    }, 500);
+    }, 2500);
     const initializeChatbot = async () => {
       try {
         const settings = await fetchControlPanelSettings();
@@ -34,7 +34,7 @@ function Chatbot() {
           setIsOpen(true);
           setIsChatTab(true);
         }
-        const floatingIconDelay = (settings.data.botResponseDelay)*1000 || 0;
+        const floatingIconDelay = (settings.data.botResponseDelay) * 1000 || 0;
         console.log('Floating icon delay:', floatingIconDelay);
         if (floatingIconDelay > 0) {
           const timer = setTimeout(() => setShowIcon(true), floatingIconDelay);
