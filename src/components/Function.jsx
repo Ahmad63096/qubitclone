@@ -93,5 +93,42 @@ const splitMessage = (text) => {
   }
   return chunks;
 };
-
-export { animateBotReply, getSessionId, getVisitorIp,splitMessage };
+const fetchBotReply = async (message) => {
+  const zoneTime = new Date().toLocaleString("en-US", { timeZone: "Asia/Karachi" });
+  const ip = await getVisitorIp();
+  const data = {
+    session_id: getSessionId(),
+    message,
+    Zone: "Asia/Karachi",
+    zoneTime,
+    ip: ip || "IP not available",
+  };
+  console.log("Sending data to the bot:", data);
+  const response = await fetch(import.meta.env.VITE_CHAT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) throw new Error("Failed to fetch bot reply");
+  return response.json();
+};
+const fetchControlPanelSettings = async () => {
+  try {
+    const apiUrl = "https://bot.devspandas.com/api/panel/control-panel-settings/";
+    const response = await fetch(apiUrl, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`API error: ${response.statusText}`);
+    }
+    const data = await response.json();
+    console.log("Control Panel Settings:", data);
+    return data;
+  } catch (error) {
+    console.error("Error fetching control panel settings:", error);
+  }
+};
+export { animateBotReply, getSessionId, getVisitorIp, splitMessage, fetchBotReply, fetchControlPanelSettings };

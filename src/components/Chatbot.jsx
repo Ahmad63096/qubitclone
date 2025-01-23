@@ -1,14 +1,17 @@
-import { useState } from 'react';
-// import './assets/css/v1.css';
+import { useState, useEffect } from 'react';
 import chaticon from './assets/images/chaticon.png';
 import homeicon from './assets/images/homeicon.png';
 import sendicon from './assets/images/sendicon.png';
 import Message from './Message';
 import { Chat, Contact, Resources, Services } from './Svg';
 import powerby from './assets/images/footerlogo.png';
+import { fetchControlPanelSettings } from './Function';
 function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [isChatTab, setIsChatTab] = useState(false);
+  const [showIcon, setShowIcon] = useState(false);
+  const [showAnimation, setShowAnimation] = useState(false);
+  const [isDisabled, setIsDisabled] = useState(false);
   const togglePopup = () => {
     setIsOpen(!isOpen);
     if (!isOpen) {
@@ -18,11 +21,50 @@ function Chatbot() {
   const goToChatTab = () => {
     setIsChatTab(true);
   };
+  useEffect(() => {
+    // eslint-disable-next-line
+    const timer = setTimeout(() => {
+      setShowAnimation(true);
+    }, 500);
+    const initializeChatbot = async () => {
+      try {
+        const settings = await fetchControlPanelSettings();
+        console.log('Control panel settings:', settings);
+        if (settings.data.autoOpenChatbotWindow === true) {
+          setIsOpen(true);
+          setIsChatTab(true);
+        }
+        const floatingIconDelay = (settings.data.botResponseDelay)*1000 || 0;
+        console.log('Floating icon delay:', floatingIconDelay);
+        if (floatingIconDelay > 0) {
+          const timer = setTimeout(() => setShowIcon(true), floatingIconDelay);
+          return () => clearTimeout(timer);
+        } else {
+          setShowIcon(true);
+        }
+        if (settings.data.disableBot === false) {
+          setIsDisabled(true);
+          return;
+        }
+      } catch (error) {
+        console.error('Error fetching control panel settings:', error);
+      }
+    };
+    initializeChatbot();
+  }, []);
+  if (isDisabled) return null;
   return (
     <div className="chatbot-container floating-chat">
-      <div className={`chat-icon-wrap ${isOpen ? 'hidden' : ''}`} onClick={togglePopup}>
-        <img src={chaticon} alt="Chat Icon" className="chat-icon" />
-      </div>
+      {showIcon && (
+        <div className={`chat-icon-wrap ${isOpen ? 'hidden' : ''}`} onClick={togglePopup}>
+          <img src={chaticon} alt="Chat Icon" className="chat-icon" />
+        </div>
+      )}
+      {showAnimation && (
+        <p className={`animation scrolling-text `}>
+          Got questions? Ask!
+        </p>
+      )}
       <div className={`chat-popup ${isOpen ? 'open' : ''}`}>
         <div className="chat enter">
           {isChatTab ? (

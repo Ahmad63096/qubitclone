@@ -2,8 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import powerby from "./assets/images/footerlogo.png";
 import Svg, { Emoji } from "./Svg";
 import typing from "./assets/images/typing.gif";
-import { animateBotReply, getSessionId, getVisitorIp, splitMessage } from "./Function";
-// import emojiRegex from 'emoji-regex';
+import { animateBotReply, fetchBotReply,  splitMessage } from "./Function";
 function Message() {
   const [messages, setMessages] = useState([]);
   const [currentMessage, setCurrentMessage] = useState("");
@@ -63,12 +62,10 @@ function Message() {
     setMessages((prevMessages) => [...prevMessages, thankYouMessage]);
     localStorage.removeItem("session_id");
   };
-
   const sendMessage = async (message = currentMessage) => {
     if (message.trim()) {
       resetTimers();
       startInactivityTimer();
-
       const userMessage = {
         sender: "user",
         text: message,
@@ -79,14 +76,11 @@ function Message() {
       setCurrentMessage("");
       inputRef.current?.focus();
       setIsTyping(true);
-
       try {
         const botReply = await fetchBotReply(message);
         console.log("Bot reply:", botReply);
-
         if (botReply) {
           const { main_response, follow_up_question, show_button } = botReply;
-
           const displayMessages = async (response) => {
             if (response?.trim()) {
               const messages = splitMessage(response.trim());
@@ -108,7 +102,6 @@ function Message() {
               }
             }
           };
-
           if (main_response?.trim() || follow_up_question?.trim()) {
             if (main_response?.trim()) {
               await displayMessages(main_response, "main_response");
@@ -136,29 +129,6 @@ function Message() {
               setTimeout(() => animateBotReply(buttonMessage.id), 0);
             }, 3000);
           }
-          // if (show_button === 1) {
-          //   setTimeout(() => {
-          //     const buttonMessage = {
-          //       sender: "bot",
-          //       text: "",
-          //       timestamp: getTimestamp(),
-          //       id: getUniqueMessageId(),
-          //       buttons: [
-          //         "AI BOT Development",
-          //         "Software Development",
-          //         "DevOps & cloud computing",
-          //         "Schedule Demo",
-          //       ],
-          //     };
-          //     setMessages((prevMessages) => {
-          //       if (!prevMessages.some((msg) => msg.buttons)) {
-          //         return [...prevMessages, buttonMessage];
-          //       }
-          //       return prevMessages;
-          //     });
-          //     setTimeout(() => animateBotReply(buttonMessage.id), 0);
-          //   }, 3000);
-          // }
         }
       } catch (error) {
         console.error("Error fetching bot reply:", error);
@@ -179,35 +149,18 @@ function Message() {
     const responseMessage = buttonResponses[buttonText] || "Sorry, I didn't understand that.";
     sendMessage(responseMessage);
   };
-  const fetchBotReply = async (message) => {
-    const zoneTime = new Date().toLocaleString("en-US", { timeZone: "Asia/Karachi" });
-    const ip = await getVisitorIp();
-    const data = {
-      session_id: getSessionId(),
-      message,
-      Zone: "Asia/Karachi",
-      zoneTime,
-      ip: ip || "IP not available",
-    };
-    console.log("Sending data to the bot:", data);
-    const response = await fetch("https://bot.devspandas.com/v1/devbot/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    if (!response.ok) throw new Error("Failed to fetch bot reply");
-    return response.json();
-  };
   useEffect(() => {
+    // fetchControlPanelSettings();
     localStorage.removeItem("session_id");
     return () => resetTimers();
   }, []);
   useEffect(() => {
     const fetchGreetingMessage = async () => {
       try {
-        const response = await fetch("https://bot.devspandas.com/api/config/get_greetings_message");
+        const apiUrl = import.meta.env.VITE_GREATING_MESSAGE;
+        const response = await fetch(apiUrl);
         const data = await response.json();
-        console.log("data: " , data);
+        console.log("data: ", data);
         const greetingMessage = {
           sender: "bot",
           text: data.data,

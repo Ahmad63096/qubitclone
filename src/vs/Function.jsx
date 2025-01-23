@@ -101,4 +101,24 @@ const getTimestamp = () => {
   const ampm = now.getHours() >= 12 ? "pm" : "am";
   return `${hours}:${minutes} ${ampm}`;
 };
-export { animateBotReply, getSessionId, getVisitorIp,splitMessage ,getTimestamp};
+
+const fetchBotReply = async (message) => {
+    const zoneTime = new Date().toLocaleString("en-US", { timeZone: "Asia/Karachi" });
+    const ip = await getVisitorIp();
+    const data = {
+      session_id: getSessionId(),
+      message,
+      Zone: "Asia/Karachi",
+      zoneTime,
+      ip: ip || "IP not available",
+    };
+    const response = await fetch("https://bot.devspandas.com/v1/qubit/qubit_core", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error("Failed to fetch bot reply");
+    return response.json();
+  };
+  
+export { animateBotReply, getSessionId, getVisitorIp,splitMessage ,getTimestamp,fetchBotReply};

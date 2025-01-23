@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from "react";
-import './assets/css/message.css';
+// import './assets/css/message.css';
 import powerby from "./assets/images/footerlogo.png";
 import typing from "./assets/images/typing.gif";
-import { animateBotReply, getSessionId, getTimestamp, getVisitorIp, splitMessage } from "./Function";
+import { animateBotReply, fetchBotReply, getTimestamp, splitMessage } from "./Function";
 function Message() {
   const [messages, setMessages] = useState([]);
   const [currentMessage, setCurrentMessage] = useState("");
@@ -142,24 +142,6 @@ function Message() {
     const responseMessage = buttonResponses[buttonText] || "Sorry, I didn't understand that.";
     sendMessage(responseMessage);
   };
-  const fetchBotReply = async (message) => {
-    const zoneTime = new Date().toLocaleString("en-US", { timeZone: "Asia/Karachi" });
-    const ip = await getVisitorIp();
-    const data = {
-      session_id: getSessionId(),
-      message,
-      Zone: "Asia/Karachi",
-      zoneTime,
-      ip: ip || "IP not available",
-    };
-    const response = await fetch("https://bot.devspandas.com/v1/qubit/qubit_core", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    if (!response.ok) throw new Error("Failed to fetch bot reply");
-    return response.json();
-  };
   useEffect(() => {
     localStorage.removeItem("session_id");
     return () => resetTimers();
@@ -167,7 +149,7 @@ function Message() {
   useEffect(() => {
     const fetchGreetingMessage = async () => {
       try {
-        const response = await fetch("https://bot.devspandas.com/api/config/get_greetings_message");
+        const response = await fetch('https://bot.devspandas.com/api/config/get_greetings_message');
         const data = await response.json();
         console.log("data: ", data);
         const greetingMessage = {
@@ -196,14 +178,14 @@ function Message() {
   }, [messages]);
   return (
     <>
-      <ul ref={messagesContainerRef} className="messages">
+      <ul ref={messagesContainerRef} className="messages-v2">
         {messages.map((msg) =>
           msg.buttons ? (
-            <div key={msg.id} id={`message-${msg.id}`} className="buttons-container">
+            <div key={msg.id} id={`message-${msg.id}`} className="buttons-container-v2">
               {msg.text && (
-                <li className="other">
+                <li className="other-v2">
                   {msg.text}
-                  <div className="timestamp">{msg.timestamp}</div>
+                  <div className="timestamp-v2">{msg.timestamp}</div>
                 </li>
               )}
               <div className="btn-wrap">
@@ -215,22 +197,22 @@ function Message() {
               </div>
             </div>
           ) : (
-            <li key={msg.id} id={`message-${msg.id}`} className={msg.sender === "user" ? "self" : "other"}>
+            <li key={msg.id} id={`message-${msg.id}`} className={msg.sender === "user" ? "self-v2" : "other-v2"}>
               {msg.text}
-              <div className="timestamp">{msg.timestamp}</div>
+              <div className="timestamp-v2">{msg.timestamp}</div>
             </li>
           )
         )}
       </ul>
       {isTyping && (
-        <li className="typing">
+        <li className="typing-v2">
           <img src={typing} alt="Typing indicator" />
         </li>
       )}
-      <div className="footer">
+      <div className="footer-v2">
         <textarea
           ref={inputRef}
-          className="text-box"
+          className="text-box-v2"
           value={currentMessage}
           onChange={(e) => setCurrentMessage(e.target.value)}
           onKeyPress={(e) => {
@@ -243,11 +225,11 @@ function Message() {
           rows={1}
           autoFocus
         />
-        <button id="fileadd">
+        <button id="fileadd-v2">
           <i className="fa-solid fa-paper-plane"></i>
         </button>
       </div>
-      <p className="copyright-two">
+      <p className="copyright-two-v2">
         Powered by <img src={powerby} alt="Powered by logo" />
       </p>
     </>
