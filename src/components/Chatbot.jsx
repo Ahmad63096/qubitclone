@@ -30,22 +30,24 @@ function Chatbot() {
       try {
         const settings = await fetchControlPanelSettings();
         console.log('Control panel settings:', settings);
+        if (settings.data.disableBot === false) {
+          setIsDisabled(true);
+          return;
+        }
         if (settings.data.autoOpenChatbotWindow === true) {
           setIsOpen(true);
           setIsChatTab(true);
         }
-        const floatingIconDelay = (settings.data.botResponseDelay)*1000 || 0;
+        const floatingIconDelay = (settings.data.botResponseDelay) * 1000 || 0;
         console.log('Floating icon delay:', floatingIconDelay);
+        console.log('disableBot:', settings.data.disableBot);
         if (floatingIconDelay > 0) {
           const timer = setTimeout(() => setShowIcon(true), floatingIconDelay);
           return () => clearTimeout(timer);
         } else {
           setShowIcon(true);
         }
-        if (settings.data.disableBot === true) {
-          setIsDisabled(true);
-          return;
-        }
+
       } catch (error) {
         console.error('Error fetching control panel settings:', error);
       }
