@@ -34,7 +34,7 @@ function Chatbot() {
           setIsOpen(true);
           setIsChatTab(true);
         }
-        const floatingIconDelay = (settings.data.floatingIconDelay)*1000 || 0;
+        const floatingIconDelay = (settings.data.botResponseDelay)*1000 || 0;
         console.log('Floating icon delay:', floatingIconDelay);
         if (floatingIconDelay > 0) {
           const timer = setTimeout(() => setShowIcon(true), floatingIconDelay);
@@ -42,7 +42,7 @@ function Chatbot() {
         } else {
           setShowIcon(true);
         }
-        if (settings.data.disableBot === false) {
+        if (settings.data.disableBot === true) {
           setIsDisabled(true);
           return;
         }
