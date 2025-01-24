@@ -8,6 +8,7 @@ function Bot2() {
   const togglePopup = () => {
     setIsOpen(!isOpen);
   };
+  
   return (
     <div className="chatbot-container-v2 floating-chat-v2">
       <div className={`chat-icon-wrap-v2 ${isOpen ? 'hidden-v2' : ''}`} onClick={togglePopup}>
