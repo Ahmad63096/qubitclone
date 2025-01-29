@@ -3,7 +3,8 @@ import powerby from "./assets/images/footerlogo.png";
 import Svg, { Emoji } from "./Svg";
 import typing from "./assets/images/typing.gif";
 import { animateBotReply, fetchBotReply, splitMessage } from "./Function";
-import EmojiPicker from "emoji-picker-react"; // Import the emoji picker
+import EmojiPicker from "../../node_modules/emoji-picker-react"
+// import EmojiPicker from "emoji-picker-react"; // Import the emoji picker
 
 function Message() {
   const [messages, setMessages] = useState([]);
