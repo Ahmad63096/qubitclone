@@ -680,7 +680,7 @@ body {
 
 .messages-two li.other:before {
   left: -32px;
-  background-image: url('../src/components/assets/img/avatar-2.jpg');
+  background-image: url('../src/components/assets/images/avatar-2.jpg');
 }
 
 .messages-two li.other:after {
