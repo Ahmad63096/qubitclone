@@ -33,14 +33,13 @@ const ChatArea = ({ messages, isBotTyping }) => {
           )}
           {/* Message Bubble */}
           <div
-            className={`py-1 px-2 max-w-xs w-auto rounded-lg ${
-              msg.sender === "user"
+            className={`py-1 px-2 max-w-xs w-auto rounded-lg ${msg.sender === "user"
                 ? "ring-2 ring-chatpanda text-gray-700 ml-4"
                 : "bg-gray-100 text-gray-700 ring-2 ring-purple-400"
-            } ${msg.isLoading ? "animate-pulse" : ""} break-words`}
+              } ${msg.isLoading ? "animate-pulse" : ""} break-words`}
           >
-          {/* Display text content */}
-          <p>{msg.text}</p>
+            {/* Display text content */}
+            <p>{msg.text}</p>
             {/* Display image if it exists (for bot messages) */}
             {msg.image && (
               <div className="mb-2">
