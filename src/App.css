@@ -857,6 +857,12 @@ body {
     /* Move back to the right and stop */
   }
 }
+.emoji-picker {
+  position: absolute;
+  bottom: 60px;
+  right: 10px;
+  z-index: 1000;
+}
 /* ********************************================================================================
 version 2 */
 

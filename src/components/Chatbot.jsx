@@ -91,7 +91,7 @@ function Chatbot() {
                 <i className="fa-solid fa-message"></i> Chatbot
               </span>
               <button>
-                <i className="fa-regular fa-window-minimize"></i>
+                <i onClick={togglePopup} className="fa-regular fa-window-minimize"></i>
               </button>
             </div>
           )}
