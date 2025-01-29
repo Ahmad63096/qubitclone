@@ -107,7 +107,7 @@ function Chatbot() {
                     <img src={sendicon} alt="Send Icon" />
                     <span className="online-icon"></span>
                     <span>
-                      <p>Qubit</p>
+                      <p>Devpandas</p>
                       <p>Hello there!</p>
                     </span>
                   </div>
