@@ -114,7 +114,7 @@ const fetchBotReply = async (message) => {
 };
 const fetchControlPanelSettings = async () => {
   try {
-    const apiUrl = "https://bot.devspandas.com/api/panel/control-panel-settings/";
+    const apiUrl = "https://bot.devspandas.com/api/panel/control-panel-settings?bot_type=qubit";
     const response = await fetch(apiUrl, {
       method: "GET",
       headers: {
@@ -125,6 +125,7 @@ const fetchControlPanelSettings = async () => {
       throw new Error(`API error: ${response.statusText}`);
     }
     const data = await response.json();
+    // debugger
     console.log("Control Panel Settings:", data);
     return data;
   } catch (error) {

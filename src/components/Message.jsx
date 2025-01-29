@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import powerby from "./assets/images/footerlogo.png";
 import Svg, { Emoji } from "./Svg";
 import typing from "./assets/images/typing.gif";
-import { animateBotReply, fetchBotReply, splitMessage } from "./Function";
+import { animateBotReply, fetchBotReply, fetchControlPanelSettings, splitMessage } from "./Function";
 import EmojiPicker from "../../node_modules/emoji-picker-react"
 // import EmojiPicker from "emoji-picker-react"; // Import the emoji picker
 
@@ -176,13 +176,12 @@ function Message() {
   useEffect(() => {
     const fetchGreetingMessage = async () => {
       try {
-        const apiUrl = import.meta.env.VITE_GREATING_MESSAGE;
-        const response = await fetch(apiUrl);
-        const data = await response.json();
-        console.log("data: ", data);
+        const greeting = await fetchControlPanelSettings();
+        console.log("greeting data: ", greeting.data.settings.greeting_message);
+        const data = greeting.data.settings.greeting_message;
         const greetingMessage = {
           sender: "bot",
-          text: data.data,
+          text: data,
           timestamp: getTimestamp(),
           id: getUniqueMessageId(),
         };

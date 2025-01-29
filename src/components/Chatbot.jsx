@@ -29,16 +29,16 @@ function Chatbot() {
     const initializeChatbot = async () => {
       try {
         const settings = await fetchControlPanelSettings();
-        console.log('Control panel settings:', settings);
-        if (settings.data.disableBot === false) {
+        console.log('456 Control panel settings:', settings.data.settings);
+        if (settings.data.settings.disableBot === false) {
           setIsDisabled(true);
           return;
         }
-        if (settings.data.autoOpenChatbotWindow === true) {
+        if (settings.data.settings.autoOpenChatbot === true) {
           setIsOpen(true);
           setIsChatTab(true);
         }
-        const floatingIconDelay = (settings.data.botResponseDelay) * 1000 || 0;
+        const floatingIconDelay = (settings.data.settings.botResponseDelay) * 1000 || 0;
         console.log('Floating icon delay:', floatingIconDelay);
         console.log('disableBot:', settings.data.disableBot);
         if (floatingIconDelay > 0) {
