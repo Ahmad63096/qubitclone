@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { v4 as uuidv4 } from "uuid"; // Install uuid: npm install uuid
 import ChatHeader from "./ChatHeader";
 import ChatArea from "./ChatArea";
 import ChatInput from "./ChatInput";
 import footerlogo from '../assets/footerlogo.2594dd465ba2d84c4a42.png'
+import { getSessionId } from "../../components/Function";
 
 const ChatInterface = ({ onClose }) => {
   const [messages, setMessages] = useState(() => {
@@ -39,7 +39,7 @@ const ChatInterface = ({ onClose }) => {
 
   const [userInput, setUserInput] = useState("");
   const [isBotTyping, setIsBotTyping] = useState(false);
-  const [sessionId] = useState(uuidv4());
+  const [sessionId] = useState( getSessionId() );
   const [zone, setZone] = useState("");
   const [zoneTime, setZoneTime] = useState("");
   const [ip, setIp] = useState("");
