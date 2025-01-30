@@ -10,7 +10,6 @@ const ChatInput = ({ userInput, handleUserInput, handleSendMessage, handleKeyPre
     handleUserInput({ target: { value: userInput + emojiObject.emoji } });
     setShowEmojiPicker(false);
   };
-
   return (
     <div className="p-2 bg-gray-100 border-t border-gray-300 flex items-center space-x-2 relative">
       <button
@@ -39,8 +38,6 @@ const ChatInput = ({ userInput, handleUserInput, handleSendMessage, handleKeyPre
         <FiSend size={20} />
       </button>
     </div>
-  );
-  
+  );  
 };
-
 export default ChatInput;

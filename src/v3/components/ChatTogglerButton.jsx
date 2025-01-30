@@ -1,14 +1,10 @@
 import React from "react";
-import QubitLogo from "../assets/qubit-logo.png";
 import Logo from '../assets/devpanda-loggo.png'
-
-
 const ChatTogglerButton = ({ isOpen, onClick }) => {
   return (
     <button
       onClick={onClick}
-      className="w-16 h-16 bg-purple-200 rounded-full shadow-2xl flex items-center justify-center text-white text-2xl hover:bg-purple-400 transition duration-300"
-    >
+      className="w-16 h-16 bg-purple-200 rounded-full shadow-2xl flex items-center justify-center text-white text-2xl hover:bg-purple-400 transition duration-300">
       {isOpen ? (
         ""
       ) : (
@@ -17,5 +13,4 @@ const ChatTogglerButton = ({ isOpen, onClick }) => {
     </button>
   );
 };
-
 export default ChatTogglerButton;

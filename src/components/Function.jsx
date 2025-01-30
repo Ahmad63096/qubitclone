@@ -112,9 +112,9 @@ const fetchBotReply = async (message) => {
   if (!response.ok) throw new Error("Failed to fetch bot reply");
   return response.json();
 };
-const fetchControlPanelSettings = async () => {
+const fetchControlPanelSettings = async (bot_type) => {
   try {
-    const apiUrl = "https://bot.devspandas.com/api/panel/control-panel-settings?bot_type=qubit";
+    const apiUrl = `https://bot.devspandas.com/api/panel/control-panel-settings?bot_type=${bot_type}`;
     const response = await fetch(apiUrl, {
       method: "GET",
       headers: {
@@ -126,7 +126,7 @@ const fetchControlPanelSettings = async () => {
     }
     const data = await response.json();
     // debugger
-    console.log("Control Panel Settings:", data);
+    console.log("123 Control Panel Settings:", data);
     return data;
   } catch (error) {
     console.error("Error fetching control panel settings:", error);

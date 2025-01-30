@@ -28,7 +28,7 @@ function Chatbot() {
     }, 1500);
     const initializeChatbot = async () => {
       try {
-        const settings = await fetchControlPanelSettings();
+        const settings = await fetchControlPanelSettings('qubit_devpandas');
         console.log('456 Control panel settings:', settings.data.settings);
         if (settings.data.settings.disableBot === false) {
           setIsDisabled(true);
