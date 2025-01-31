@@ -176,7 +176,7 @@ function Message() {
   useEffect(() => {
     const fetchGreetingMessage = async () => {
       try {
-        const greeting = await fetchControlPanelSettings();
+        const greeting = await fetchControlPanelSettings('qubit');
         console.log("greeting data: ", greeting.data.settings.greeting_message);
         const data = greeting.data.settings.greeting_message;
         const greetingMessage = {
