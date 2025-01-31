@@ -41,6 +41,7 @@ const ChatInterface = ({ onClose }) => {
   }, [greetingMessage]);
 
   useEffect(() => {
+    localStorage.removeItem("session_id");
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const localTime = new Date().toLocaleString("en-US", { timeZone });
     setZone(timeZone);
@@ -58,7 +59,6 @@ const ChatInterface = ({ onClose }) => {
 
     fetchIp();
   }, []);
-
   const handleCloseChat = () => {
     onClose();
   };
@@ -83,7 +83,7 @@ const ChatInterface = ({ onClose }) => {
 
         console.log("Payload Data:", payload);
 
-        const response = await fetch("https://8947-103-150-242-99.ngrok-free.app/v1/ecom/ecom_chat", {
+        const response = await fetch("https://60ab-116-58-22-198.ngrok-free.app/v1/ecom/ecom_chat", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
