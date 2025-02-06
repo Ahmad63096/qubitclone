@@ -85,15 +85,16 @@ function ChatBot() {
     hidden: { opacity: 0, x: -20 },
     visible: { opacity: 1, x: 0, transition: { duration: 0.4 } }
   };
-  const sliderSettings = { // ✅ Use proper naming and memoize settings
+  const sliderSettings = {
     dots: false,
     infinite: true,
     speed: 500,
-    slidesToShow: 1, // ✅ Show 2 slides at a time (adjust as needed)
+    slidesToShow: 1,
     slidesToScroll: 1,
-    arrows: true, // ✅ Enable arrows
+    arrows: true,
+    centerPadding: '0px',
     adaptiveHeight: true,
-    responsive: [ // ✅ Add responsive breakpoints
+    responsive: [
       {
         breakpoint: 768,
         settings: {
@@ -165,7 +166,6 @@ function ChatBot() {
                         padding: "8px 12px",
                         borderRadius: "5px",
                         maxWidth: "70%",
-                        // boxShadow: msg.sender === "user" ? "" : "0px 8px 32px -6px rgba(15,15,15,1)",
                         wordBreak: "break-word",
                       }}
                     >
@@ -175,19 +175,15 @@ function ChatBot() {
                   {msg.type === "products" && (
                     <div
                       style={{
-                        // background: "#37474f",
-                        // borderRadius: "5px",
-                        // padding: "10px",
-                        width: "75%", // ✅ Change from maxWidth to fixed width
-                        // margin: "0", // ✅ Center the slider
+                        width: "75%",
                       }}
                     >
                       <Slider
                         {...sliderSettings}
-                        key={msg.products.length} // ✅ Force re-render when products change
+                        key={msg.products.length}
                       >
                         {msg.products.map((product, idx) => (
-                          <div key={idx} style={{ padding: "0 5px", width: '100px' }}> {/* ✅ Add padding between slides */}
+                          <div key={idx} style={{ padding: "0 5px", width: '100px' }}>
                             <div
                               style={{
                                 background: "#fff",
@@ -196,7 +192,7 @@ function ChatBot() {
                                 padding: "10px",
                                 textAlign: "center",
                                 boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-                                height: "100%", // ✅ Ensure consistent height
+                                height: "100%",
                               }}
                             >
                               <img
@@ -204,16 +200,16 @@ function ChatBot() {
                                 alt={product.product_name}
                                 style={{
                                   width: "100%",
-                                  height: "150px", // ✅ Fixed image height
-                                  objectFit: "cover", // ✅ Maintain aspect ratio
+                                  height: "150px",
+                                  objectFit: "cover",
                                   borderRadius: "5px"
                                 }}
                               />
-                              <div style={{ display: 'flex', justifyContent: 'space-evenly', width: '100%', margin: '10px 0' }}>
+                              <p style={{ fontSize: '14px', textAlign: 'justify' }}>{product.product_name}</p>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', margin: '10px 0' }}>
                                 <span>Price:</span><span>${product.price}</span>
                               </div>
-                              <button style={{backgroundColor: 'rgb(19, 59, 59)',color: 'white',padding: '8px 30px',borderRadius: '5px',border: 'none',cursor: 'pointer'}}>Add To Cart</button>
-                              {/* ... rest of product details */}
+                              <button style={{ backgroundColor: 'rgb(19, 59, 59)', color: 'white', padding: '8px 30px', borderRadius: '5px', border: 'none', cursor: 'pointer' }}>Add To Cart</button>
                             </div>
                           </div>
                         ))}
@@ -229,7 +225,6 @@ function ChatBot() {
                 display: "flex",
                 padding: "10px",
                 borderTop: "1px solid #ccc",
-                // backgroundColor: "#37474f",
               }}
             >
               <input
@@ -272,7 +267,6 @@ function ChatBot() {
     </div>
   );
 }
-
 export default ChatBot;
 
 
