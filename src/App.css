@@ -342,11 +342,13 @@ body {
   margin: 8px;
   font-size: 22px;
 }
+
 .btn-wrap {
   width: 100%;
   display: flex;
   flex-wrap: wrap;
 }
+
 .dropdown {
   cursor: pointer;
 }
@@ -800,9 +802,12 @@ body {
     right: 0;
   }
 }
-.typing{
-  background: #f1dfe5;;
+
+.typing {
+  background: #f1dfe5;
+  ;
 }
+
 .typing img {
   width: 50px;
   height: auto;
@@ -821,11 +826,13 @@ body {
   padding-left: 20px;
   list-style-type: disc;
 }
-.bullet-list li{
+
+.bullet-list li {
   padding: 0;
   margin: 0;
   list-style: circle !important;
 }
+
 .animation {
   position: absolute;
   top: -60px;
@@ -835,12 +842,14 @@ body {
   padding: 8px;
   border-radius: 10px;
 }
+
 .scrolling-text {
   overflow: hidden;
   white-space: nowrap;
   display: inline-block;
   animation: zoom-text 10s ease-in-out infinite;
 }
+
 @keyframes zoom-text {
   0% {
     transform: translateX(5%) scale(1);
@@ -857,12 +866,14 @@ body {
     /* Move back to the right and stop */
   }
 }
+
 .emoji-picker {
   position: absolute;
   bottom: 60px;
   right: 10px;
   z-index: 1000;
 }
+
 /* ********************************================================================================
 version 2 */
 
@@ -952,6 +963,7 @@ version 2 */
   z-index: -1;
   background-image: url('../src/components/assets/images/background.jpg');
 }
+
 .messages-v2 li {
   padding: 8px 10px;
   margin-bottom: 10px;
@@ -1018,7 +1030,7 @@ version 2 */
   margin-left: 32px;
   color: #ffffff;
   background-color: #07114fc7;
- }
+}
 
 .messages-v2 li.other-v2:before {
   left: -40px;
@@ -1049,6 +1061,7 @@ version 2 */
   left: 10px !important;
   width: 100px !important;
 }
+
 .header-v2 {
   flex-shrink: 0;
   padding: 10px;
@@ -1091,6 +1104,7 @@ version 2 */
 .btn-wrap-v2 button {
   border: 1px solid #00000040 !important;
 }
+
 .footer-v2 {
   flex-shrink: 0;
   display: flex;
@@ -1135,6 +1149,7 @@ version 2 */
   border-radius: 5px;
   background-color: rgba(25, 147, 147, 0.2);
 }
+
 #fileadd-v2 {
   position: absolute;
   height: 43px;
@@ -1160,6 +1175,7 @@ version 2 */
   height: 12px;
   width: auto;
 }
+
 .floating-chat-v2 button {
   background: transparent;
   border: 0;
@@ -1235,6 +1251,7 @@ version 2 */
   margin: 4px;
   background-color: white;
 }
+
 .qubit_logo-v2 {
   width: auto;
   height: 35px;
@@ -1242,116 +1259,44 @@ version 2 */
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* version 3 */
-/* Hide scrollbar but keep scroll functionality */
-.custom-scrollbar {
-  overflow-y: scroll; /* Enable scrolling */
-}
-
-/* Hide the scrollbar */
-.custom-scrollbar::-webkit-scrollbar {
-  display: none; /* Hide the scrollbar */
-}
-
-/* Optional: Add smooth scrolling */
-.custom-scrollbar {
-  scroll-behavior: smooth;
-}
-
-/* Animated Header Border */
-
-.animated-border {
+/* ********************************===============================********************************
+version 3 */
+.chat-title {
+  flex: 0 1 45px;
   position: relative;
-  display: block;
-  padding: 3px; /* Space for the animated border */
-  background: transparent; /* Transparent to make the border visible */
-  /* border-radius: 0.5rem; Adjust as needed */
+  z-index: 2;
+  background: rgba(0, 0, 0, 0.2);
+  /* color: #fff; */
+  text-transform: uppercase;
+  text-align: left;
+  padding: 10px 10px 0px 50px;
 }
-
-.animated-border::before {
-  content: '';
+.chat-title h1,
+.chat-title h2 {
+  font-weight: normal;
+  font-size: 16px;
+  margin: 0;
+  padding: 6px 0px;
+}
+.chat-title h2 {
+  /* color: rgba(255, 255, 255, 0.5); */
+  font-size: 8px;
+  letter-spacing: 1px;
+}
+.chat-title .avatar {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: -1;
-  background: linear-gradient(45deg, #ff6ec4, #7873f5, #ff6ec4);
-  background-size: 300% 300%;
-  border-radius: inherit;
-  animation: gradient-border-animation 2s infinite linear;
+  z-index: 1;
+  top: 8px;
+  left: 9px;
+  border-radius: 30px;
+  width: 30px;
+  height: 30px;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  border: 2px solid rgba(255, 255, 255, 0.24);
 }
-
-/* Keyframe for gradient animation */
-@keyframes gradient-border-animation {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-/* DevPandas bot logo animation */
-@keyframes devAnimation {
-  0% {
-    transform: scale3d(1, 1, 1) skew(2deg, 2deg);
-  }
-  25% {
-    transform: scale3d(1.1, 1.1, 1.1) skew(5deg, 5deg);
-  }
-  50% {
-    transform: scale3d(1, 1, 1) skew(2deg, 2deg);
-  }
-  75% {
-    transform: scale3d(1.1, 1.1, 1.1) skew(-5deg, -5deg);
-  }
-  100% {
-    transform: scale3d(1, 1, 1) skew(2deg, 2deg);
-  }
-}
-
-.dev-animation {
-  animation: devAnimation 4s infinite ease-in-out;
-}
-
-
-/* DEVPANDAS LOGO Animation */
-
-
-@keyframes devpandasAnimation {
-  0% {
-    transform: scale3d(1, 1, 1) ;
-  }
- 
-  50% {
-    transform: scale3d(1.2, 1.2, 1.2) ;
-  }
-
-  100% {
-    transform: scale3d(1, 1, 1) ;
-  }
-}
-
-.devpandas-animation {
-  animation: devpandasAnimation 4s infinite ease-in-out;
+.chat-title .avatar img {
+  width: 100%;
+  height: auto;
 }
