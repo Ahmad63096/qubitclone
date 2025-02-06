@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 // import './assets/css/message.css';
 import powerby from "./assets/images/footerlogo.png";
 import typing from "./assets/images/typing.gif";
-import { animateBotReply, fetchBotReply, getTimestamp, splitMessage } from "./Function";
+import { animateBotReply, fetchBotReply, getTimestamp, splitMessage,fetchControlPanelSettings } from "./Function";
 function Message() {
   const [messages, setMessages] = useState([]);
   const [currentMessage, setCurrentMessage] = useState("");
@@ -149,12 +149,12 @@ function Message() {
   useEffect(() => {
     const fetchGreetingMessage = async () => {
       try {
-        const response = await fetch('https://bot.devspandas.com/api/config/get_greetings_message');
-        const data = await response.json();
-        console.log("data: ", data);
+        const greeting = await fetchControlPanelSettings('qubit');
+        console.log("greeting data: ", greeting.data.settings.greeting_message);
+        const data = greeting.data.settings.greeting_message;
         const greetingMessage = {
           sender: "bot",
-          text: data.data,
+          text: data,
           timestamp: getTimestamp(),
           id: getUniqueMessageId(),
         };

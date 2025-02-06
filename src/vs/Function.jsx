@@ -120,5 +120,24 @@ const fetchBotReply = async (message) => {
     if (!response.ok) throw new Error("Failed to fetch bot reply");
     return response.json();
   };
-  
-export { animateBotReply, getSessionId, getVisitorIp,splitMessage ,getTimestamp,fetchBotReply};
+  const fetchControlPanelSettings = async (bot_type) => {
+    try {
+      const apiUrl = `https://bot.devspandas.com/api/panel/control-panel-settings?bot_type=${bot_type}`;
+      const response = await fetch(apiUrl, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`API error: ${response.statusText}`);
+      }
+      const data = await response.json();
+      // debugger
+      console.log("123 Control Panel Settings:", data);
+      return data;
+    } catch (error) {
+      console.error("Error fetching control panel settings:", error);
+    }
+  };
+export { animateBotReply, getSessionId, getVisitorIp,splitMessage ,getTimestamp,fetchBotReply,fetchControlPanelSettings};
