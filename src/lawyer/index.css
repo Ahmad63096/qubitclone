@@ -1,0 +1,102 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Hide scrollbar but keep scroll functionality */
+.custom-scrollbar {
+  overflow-y: scroll; /* Enable scrolling */
+}
+
+/* Hide the scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  display: none; /* Hide the scrollbar */
+}
+
+/* Optional: Add smooth scrolling */
+.custom-scrollbar {
+  scroll-behavior: smooth;
+}
+
+/* Animated Header Border */
+
+.animated-border {
+  position: relative;
+  display: block;
+  padding: 3px; /* Space for the animated border */
+  background: transparent; /* Transparent to make the border visible */
+  /* border-radius: 0.5rem; Adjust as needed */
+}
+
+.animated-border::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  background: linear-gradient(45deg, #ff6ec4, #7873f5, #ff6ec4);
+  background-size: 300% 300%;
+  border-radius: inherit;
+  animation: gradient-border-animation 2s infinite linear;
+}
+
+/* Keyframe for gradient animation */
+@keyframes gradient-border-animation {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* DevPandas bot logo animation */
+@keyframes devAnimation {
+  0% {
+    transform: scale3d(1, 1, 1) skew(2deg, 2deg);
+  }
+  25% {
+    transform: scale3d(1.1, 1.1, 1.1) skew(5deg, 5deg);
+  }
+  50% {
+    transform: scale3d(1, 1, 1) skew(2deg, 2deg);
+  }
+  75% {
+    transform: scale3d(1.1, 1.1, 1.1) skew(-5deg, -5deg);
+  }
+  100% {
+    transform: scale3d(1, 1, 1) skew(2deg, 2deg);
+  }
+}
+
+.dev-animation {
+  animation: devAnimation 4s infinite ease-in-out;
+}
+
+
+/* DEVPANDAS LOGO Animation */
+
+
+@keyframes devpandasAnimation {
+  0% {
+    transform: scale3d(1, 1, 1) ;
+  }
+ 
+  50% {
+    transform: scale3d(1.2, 1.2, 1.2) ;
+  }
+
+  100% {
+    transform: scale3d(1, 1, 1) ;
+  }
+}
+
+.devpandas-animation {
+  animation: devpandasAnimation 4s infinite ease-in-out;
+}
+
+
