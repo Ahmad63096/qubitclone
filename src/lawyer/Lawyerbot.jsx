@@ -6,7 +6,7 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import backgroundImage from "./assets/images/chat-background.jpg";
 const getSessionId = () => {
-  return "session-" + Math.random().toString(36).substr(2, 9);
+  return Math.random().toString(36).substr(2, 9);
 };
 const fetchBotReply = async (data) => {
   try {
@@ -33,7 +33,7 @@ function LawyerBot() {
   ]);
   const [userMessage, setUserMessage] = useState("");
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [showButtons, setShowButtons] = useState(false); 
+  const [showButtons, setShowButtons] = useState(false);
   const messagesEndRef = useRef(null);
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -56,6 +56,7 @@ function LawyerBot() {
       zoneTime: new Date().toLocaleString("en-US", { timeZone: "Asia/Karachi" }),
       ip: "116.58.22.198",
     };
+    console.log('sadsadsad', data);
     try {
       const reply = await fetchBotReply(data);
       console.log("Full API reply:", reply);
@@ -358,7 +359,7 @@ function LawyerBot() {
               )}
               <div ref={messagesEndRef} />
             </div>
-            <div style={{display: "flex",padding: "10px",borderTop: "1px solid #ccc",backgroundColor: "#fff",}}>
+            <div style={{ display: "flex", padding: "10px", borderTop: "1px solid #ccc", backgroundColor: "#fff", }}>
               <input type="text" placeholder="Type a message..." value={userMessage}
                 onChange={(e) => setUserMessage(e.target.value)}
                 onKeyDown={(e) => {
@@ -367,9 +368,9 @@ function LawyerBot() {
                     sendMessage();
                   }
                 }}
-                style={{flex: 1,border: "1px solid #ccc",borderRadius: "5px",padding: "8px",outline: "none",marginRight: "10px",}}
+                style={{ flex: 1, border: "1px solid #ccc", borderRadius: "5px", padding: "8px", outline: "none", marginRight: "10px", }}
               />
-              <button onClick={() => sendMessage()} style={{backgroundColor: "#133b3b",color: "#fff",border: "none",borderRadius: "5px",padding: "8px 12px",cursor: "pointer",}}>
+              <button onClick={() => sendMessage()} style={{ backgroundColor: "#133b3b", color: "#fff", border: "none", borderRadius: "5px", padding: "8px 12px", cursor: "pointer", }}>
                 Send
               </button>
             </div>
