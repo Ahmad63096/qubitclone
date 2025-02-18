@@ -112,7 +112,7 @@ function TutorBot() {
         });
       }
       // Show buttons if button_value is 1 in the API response
-      if (reply.button_value === 0) {
+      if (reply.button_value === 1) {
         setShowButtons(true);
       }
       setMessages((prevMessages) => [...prevMessages, ...messagesToAdd]);
