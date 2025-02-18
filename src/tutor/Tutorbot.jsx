@@ -4,26 +4,39 @@ import logo from "./assets/images/avatar-2.png";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import backgroundImage from "./assets/images/chat-background.jpg"; // Add your background image here
+import backgroundImage from "./assets/images/chat-background.jpg"; // Your background image
 
-const getSessionId = () => {
-  return "session-" + Math.random().toString(36).substr(2, 9);
-};
+function generateSessionId() {
+  return '_' + Math.random().toString(36).substr(2, 9);
+}
+function getSessionId() {
+  let sessionId = localStorage.getItem('session_id');
+  if (!sessionId) {
+    sessionId = generateSessionId();
+    localStorage.setItem('session_id', sessionId);
+    console.log('New session created:', sessionId);
+  } else {
+    console.log('Existing session:', sessionId);
+  }
+  return sessionId;
+}
 
 const fetchBotReply = async (data) => {
   try {
-    const response = await fetch("https://bot.devspandas.com/v1/tutor/tutor_chatbot", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
+    const response = await fetch(
+      "https://bot.devspandas.com/v1/tutor/tutor_chatbot",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      }
+    );
     if (!response.ok) {
       throw new Error("Network response was not ok");
     }
-    const result = await response.json();
-    return result;
+    return await response.json();
   } catch (error) {
     console.error("Error fetching bot reply:", error);
     throw error;
@@ -32,10 +45,16 @@ const fetchBotReply = async (data) => {
 
 function TutorBot() {
   const [messages, setMessages] = useState([
-    { type: "text", text: "Hello! How can I help you?", sender: "bot", timestamp: new Date() },
+    {
+      type: "text",
+      text: "Hello! How can I help you?",
+      sender: "bot",
+      timestamp: new Date(),
+    },
   ]);
   const [userMessage, setUserMessage] = useState("");
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [showButtons, setShowButtons] = useState(false);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -43,14 +62,19 @@ function TutorBot() {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
-
+  useEffect(() => {
+    localStorage.removeItem("session_id");
+  }, []);
   const sendMessage = async () => {
+    console.log("Send button clicked");
     if (!userMessage.trim()) return;
     const newMessages = [
       ...messages,
       { type: "text", text: userMessage, sender: "user", timestamp: new Date() },
     ];
     setMessages(newMessages);
+    setUserMessage("");
+    setShowButtons(false);
     const data = {
       session_id: getSessionId(),
       message: userMessage,
@@ -58,7 +82,7 @@ function TutorBot() {
       zoneTime: new Date().toLocaleString("en-US", { timeZone: "Asia/Karachi" }),
       ip: "116.58.22.198",
     };
-    setUserMessage("");
+    console.log("send message:", data);
     try {
       const reply = await fetchBotReply(data);
       console.log("Full API reply:", reply);
@@ -87,12 +111,21 @@ function TutorBot() {
           timestamp: new Date(),
         });
       }
+      // Show buttons if button_value is 1 in the API response
+      if (reply.button_value === 0) {
+        setShowButtons(true);
+      }
       setMessages((prevMessages) => [...prevMessages, ...messagesToAdd]);
     } catch (error) {
       console.error("Error fetching bot reply:", error);
       setMessages((prevMessages) => [
         ...prevMessages,
-        { type: "text", text: "Sorry, there was an error. Please try again later.", sender: "bot", timestamp: new Date() },
+        {
+          type: "text",
+          text: "Sorry, there was an error. Please try again later.",
+          sender: "bot",
+          timestamp: new Date(),
+        },
       ]);
     }
   };
@@ -142,6 +175,7 @@ function TutorBot() {
 
   return (
     <div>
+      {/* Chat Toggle Button */}
       <div
         onClick={toggleChat}
         style={{
@@ -160,6 +194,7 @@ function TutorBot() {
       >
         💬
       </div>
+
       <AnimatePresence>
         {isChatOpen && (
           <motion.div
@@ -178,11 +213,15 @@ function TutorBot() {
               boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
               display: "flex",
               flexDirection: "column",
-              backgroundColor: "#fff",
+              backgroundImage: `url(${backgroundImage})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              // Removed backgroundAttachment to avoid zooming effect
               overflow: "hidden",
               zIndex: 999,
             }}
           >
+            {/* Chat Title */}
             <div
               className="chat-title"
               style={{
@@ -192,30 +231,21 @@ function TutorBot() {
                 textAlign: "center",
               }}
             >
-              <h1 style={{ margin: 0, fontSize: "18px" }}>👩‍🏫 Tutor Chatbot</h1>
+              <h1 style={{ margin: 0, fontSize: "18px" }}>
+                👩‍🏫 Tutor Chatbot
+              </h1>
             </div>
+
+            {/* Chat Messages Container */}
             <div
               style={{
                 flex: 1,
                 overflowY: "auto",
                 padding: "10px",
-                position: "relative",
+                backgroundColor: "rgba(255,255,255,0.8)", // semi-transparent overlay
+                minHeight: 0, // ensures proper flex behavior and scrollbar
               }}
             >
-              <div
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  backgroundImage: `url(${backgroundImage})`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                  opacity: 0.4,
-                  zIndex: -1,
-                }}
-              />
               {messages.map((msg, index) => (
                 <motion.div
                   key={index}
@@ -228,7 +258,6 @@ function TutorBot() {
                     flexDirection: msg.sender === "user" ? "row-reverse" : "row",
                     alignItems: "flex-start",
                     position: "relative",
-                    zIndex: 1,
                   }}
                 >
                   {msg.sender === "bot" && (
@@ -260,7 +289,8 @@ function TutorBot() {
                       <div
                         style={{
                           fontSize: "10px",
-                          color: msg.sender === "user" ? "#ffffff99" : "#00000099",
+                          color:
+                            msg.sender === "user" ? "#ffffff99" : "#00000099",
                           textAlign: "right",
                           marginTop: "4px",
                         }}
@@ -295,7 +325,9 @@ function TutorBot() {
                                   borderRadius: "5px",
                                 }}
                               />
-                              <p style={{ fontSize: "14px", textAlign: "justify" }}>{product.product_name}</p>
+                              <p style={{ fontSize: "14px", textAlign: "justify" }}>
+                                {product.product_name}
+                              </p>
                               <div
                                 style={{
                                   display: "flex",
@@ -327,8 +359,63 @@ function TutorBot() {
                   )}
                 </motion.div>
               ))}
+
+
+              {/* Render buttons in a grid: two per row, and center the fifth button */}
+              {showButtons && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(2, 1fr)",
+                    gap: "8px",
+                    margin: "10px 0",
+                  }}
+                >
+                  {[
+                    "Academic Tutoring",
+                    "Test Preparation",
+                    "Language Learning",
+                    "Skill Courses",
+                  ].map((btnText, idx) => {
+                    const buttonStyles = {
+                      padding: "8px",
+                      fontSize: "12px",
+                      borderRadius: "8px",
+                      border: "1px solid #133b3b",
+                      backgroundColor: "#fff",
+                      color: "#133b3b",
+                      cursor: "pointer",
+                      transition: "all 0.2s",
+                      textAlign: "center",
+                    };
+                    // For the 5th button (index 4), span across both columns
+                    if (idx === 4) {
+                      buttonStyles.gridColumn = "1 / -1";
+                      buttonStyles.width = "fit-content";
+                      buttonStyles.margin = "0 auto";
+                      buttonStyles.padding = "10px";
+                    }
+                    return (
+                      <button
+                        key={btnText}
+                        onClick={() => {
+                          setUserMessage(btnText); // Set the message
+                          sendMessage(btnText); // Call sendMessage with button text
+                        }}
+                        style={buttonStyles}
+                      >
+                        {btnText}
+                      </button>
+                    );
+                  })}
+                </motion.div>
+              )}
               <div ref={messagesEndRef} />
             </div>
+
+            {/* Chat Input */}
             <div
               style={{
                 display: "flex",

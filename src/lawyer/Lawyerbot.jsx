@@ -4,10 +4,22 @@ import logo from "./assets/images/avatar-2.png";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import backgroundImage from "./assets/images/chat-background.jpg";
-const getSessionId = () => {
-  return Math.random().toString(36).substr(2, 9);
-};
+import backgroundImage from "./assets/images/chat-background.jpg"; // Add your background image here
+
+function generateSessionId() {
+  return '_' + Math.random().toString(36).substr(2, 9);
+}
+function getSessionId() {
+  let sessionId = localStorage.getItem('session_id');
+  if (!sessionId) {
+    sessionId = generateSessionId();
+    localStorage.setItem('session_id', sessionId);
+    console.log('New session created:', sessionId);
+  } else {
+    console.log('Existing session:', sessionId);
+  }
+  return sessionId;
+}
 const fetchBotReply = async (data) => {
   try {
     const response = await fetch("https://bot.devspandas.com/v1/lawyer/chatbot", {
@@ -27,28 +39,37 @@ const fetchBotReply = async (data) => {
     throw error;
   }
 };
+
 function LawyerBot() {
   const [messages, setMessages] = useState([
     { type: "text", text: "Hello! How can I help you?", sender: "bot", timestamp: new Date() },
   ]);
   const [userMessage, setUserMessage] = useState("");
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [showButtons, setShowButtons] = useState(false);
+  const [showButtons, setShowButtons] = useState(false); // Control button visibility
   const messagesEndRef = useRef(null);
+
+  // Auto-scroll to the latest message
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
+  useEffect(() => {
+    localStorage.removeItem("session_id");
+  }, []);
   const sendMessage = async (messageText = userMessage) => {
     if (!messageText.trim()) return;
+
+    // Add user message to the chat
     const newMessages = [
       ...messages,
       { type: "text", text: messageText, sender: "user", timestamp: new Date() },
     ];
     setMessages(newMessages);
     setUserMessage("");
-    setShowButtons(false);
+    setShowButtons(false); // Hide buttons after sending a message
+
     const data = {
       session_id: getSessionId(),
       message: messageText,
@@ -56,10 +77,11 @@ function LawyerBot() {
       zoneTime: new Date().toLocaleString("en-US", { timeZone: "Asia/Karachi" }),
       ip: "116.58.22.198",
     };
-    console.log('sadsadsad', data);
+
     try {
       const reply = await fetchBotReply(data);
       console.log("Full API reply:", reply);
+
       const messagesToAdd = [];
       if (reply.response_content && reply.response_content.trim() !== "") {
         messagesToAdd.push({
@@ -70,14 +92,27 @@ function LawyerBot() {
         });
       }
       if (reply.product_suggestions && reply.product_suggestions.length > 0) {
-        messagesToAdd.push({ type: "products", products: reply.product_suggestions, sender: "bot", timestamp: new Date(), });
+        messagesToAdd.push({
+          type: "products",
+          products: reply.product_suggestions,
+          sender: "bot",
+          timestamp: new Date(),
+        });
       }
       if (reply.follow_up_question && reply.follow_up_question.trim() !== "") {
-        messagesToAdd.push({ type: "text", text: reply.follow_up_question, sender: "bot", timestamp: new Date(), });
+        messagesToAdd.push({
+          type: "text",
+          text: reply.follow_up_question,
+          sender: "bot",
+          timestamp: new Date(),
+        });
       }
-      if (reply.button_value === 1) {
+
+      // Show buttons if button_value is 1 in the API response
+      if (reply.button_value === 0) {
         setShowButtons(true);
       }
+
       setMessages((prevMessages) => [...prevMessages, ...messagesToAdd]);
     } catch (error) {
       console.error("Error fetching bot reply:", error);
@@ -92,16 +127,20 @@ function LawyerBot() {
       ]);
     }
   };
+
   const toggleChat = () => setIsChatOpen(!isChatOpen);
+
   const chatWindowVariants = {
     hidden: { opacity: 0, scale: 0.8, y: 50 },
     visible: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.3 } },
     exit: { opacity: 0, scale: 0.8, y: 50, transition: { duration: 0.2 } },
   };
+
   const messageVariants = {
     hidden: { opacity: 0, x: -20 },
     visible: { opacity: 1, x: 0, transition: { duration: 0.4 } },
   };
+
   const sliderSettings = {
     dots: false,
     infinite: true,
@@ -121,6 +160,8 @@ function LawyerBot() {
       },
     ],
   };
+
+  // Format the timestamp
   const formatTimestamp = (timestamp) => {
     if (!timestamp) return "";
     return new Date(timestamp).toLocaleTimeString([], {
@@ -129,8 +170,10 @@ function LawyerBot() {
       hour12: true,
     });
   };
+
   return (
     <div>
+      {/* Chat toggle button */}
       <div
         onClick={toggleChat}
         style={{
@@ -151,35 +194,36 @@ function LawyerBot() {
       </div>
       <AnimatePresence>
         {isChatOpen && (
-          <motion.div
-            variants={chatWindowVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            style={{
-              position: "fixed",
-              bottom: "90px",
-              right: "20px",
-              width: "350px",
-              height: "550px",
-              border: "1px solid #ccc",
-              borderRadius: "10px",
-              boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
-              display: "flex",
-              flexDirection: "column",
-              background: `
+    <motion.div
+    variants={chatWindowVariants}
+    initial="hidden"
+    animate="visible"
+    exit="exit"
+    style={{
+      position: "fixed",
+      bottom: "90px",
+      right: "20px",
+      width: "350px",
+      height: "550px",
+      border: "1px solid #ccc",
+      borderRadius: "10px",
+      boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
+      display: "flex",
+      flexDirection: "column",
+      // Apply a semi-transparent white overlay on top of your background image:
+      background: `
       linear-gradient(
         rgba(255, 255, 255, 0.4), 
         rgba(255, 255, 255, 0.4)
       ), 
       url(${backgroundImage})
     `,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              backgroundRepeat: "no-repeat",
-              zIndex: 999,
-            }}
-          >
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    backgroundRepeat: "no-repeat",
+      zIndex: 999,
+    }}
+  >
             <div
               className="chat-title"
               style={{
@@ -191,6 +235,7 @@ function LawyerBot() {
             >
               <h1 style={{ margin: 0, fontSize: "18px" }}>⚖️ Lawyer Chatbot</h1>
             </div>
+            {/* Scrollable messages container (transparent so background is visible) */}
             <div
               style={{
                 flex: 1,
@@ -234,6 +279,7 @@ function LawyerBot() {
                         padding: "8px 12px",
                         borderRadius: "10px",
                         maxWidth: "70%",
+                        fontSize: "13px",
                         wordBreak: "break-word",
                       }}
                     >
@@ -310,6 +356,8 @@ function LawyerBot() {
                   )}
                 </motion.div>
               ))}
+
+              {/* Render buttons in a grid: two per row, and center the fifth button */}
               {showButtons && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -339,6 +387,7 @@ function LawyerBot() {
                       transition: "all 0.2s",
                       textAlign: "center",
                     };
+                    // For the 5th button (index 4), span across both columns
                     if (idx === 4) {
                       buttonStyles.gridColumn = "1 / -1";
                       buttonStyles.width = "fit-content";
@@ -357,10 +406,21 @@ function LawyerBot() {
                   })}
                 </motion.div>
               )}
+
               <div ref={messagesEndRef} />
             </div>
-            <div style={{ display: "flex", padding: "10px", borderTop: "1px solid #ccc", backgroundColor: "#fff", }}>
-              <input type="text" placeholder="Type a message..." value={userMessage}
+            <div
+              style={{
+                display: "flex",
+                padding: "10px",
+                borderTop: "1px solid #ccc",
+                backgroundColor: "#fff",
+              }}
+            >
+              <input
+                type="text"
+                placeholder="Type a message..."
+                value={userMessage}
                 onChange={(e) => setUserMessage(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
@@ -368,9 +428,26 @@ function LawyerBot() {
                     sendMessage();
                   }
                 }}
-                style={{ flex: 1, border: "1px solid #ccc", borderRadius: "5px", padding: "8px", outline: "none", marginRight: "10px", }}
+                style={{
+                  flex: 1,
+                  border: "1px solid #ccc",
+                  borderRadius: "5px",
+                  padding: "8px",
+                  outline: "none",
+                  marginRight: "10px",
+                }}
               />
-              <button onClick={() => sendMessage()} style={{ backgroundColor: "#133b3b", color: "#fff", border: "none", borderRadius: "5px", padding: "8px 12px", cursor: "pointer", }}>
+              <button
+                onClick={() => sendMessage()}
+                style={{
+                  backgroundColor: "#133b3b",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "5px",
+                  padding: "8px 12px",
+                  cursor: "pointer",
+                }}
+              >
                 Send
               </button>
             </div>
@@ -380,4 +457,5 @@ function LawyerBot() {
     </div>
   );
 }
+
 export default LawyerBot;

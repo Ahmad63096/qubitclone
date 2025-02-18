@@ -4,9 +4,20 @@ import logo from './assets/images/avatar-2.png';
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-const getSessionId = () => {
-  return "session-" + Math.random().toString(36).substr(2, 9);
-};
+function generateSessionId() {
+  return '_' + Math.random().toString(36).substr(2, 9);
+}
+function getSessionId() {
+  let sessionId = localStorage.getItem('session_id');
+  if (!sessionId) {
+    sessionId = generateSessionId();
+    localStorage.setItem('session_id', sessionId);
+    console.log('New session created:', sessionId);
+  } else {
+    console.log('Existing session:', sessionId);
+  }
+  return sessionId;
+}
 const fetchBotReply = async (data) => {
   try {
     const response = await fetch('https://bot.devspandas.com/v1/ecom/ecom_chat', {
@@ -37,7 +48,11 @@ function ChatBot() {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
+    // localStorage.removeItem("session_id");
   }, [messages]);
+  useEffect(() => {
+    localStorage.removeItem("session_id");
+  }, []);
   const sendMessage = async () => {
     if (!userMessage.trim()) return;
     const newMessages = [...messages, { type: "text", text: userMessage, sender: "user" }];
@@ -49,6 +64,7 @@ function ChatBot() {
       zoneTime: new Date().toLocaleString("en-US", { timeZone: "Asia/Karachi" }),
       ip: "116.58.22.198",
     };
+    console.log('send message:',data);
     setUserMessage("");
     try {
       const reply = await fetchBotReply(data);
