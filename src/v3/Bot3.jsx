@@ -4,6 +4,7 @@ import logo from './assets/images/avatar-2.png';
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import typing from './assets/images/typing.gif';
 function generateSessionId() {
   return '_' + Math.random().toString(36).substr(2, 9);
 }
@@ -20,7 +21,7 @@ function getSessionId() {
 }
 const fetchBotReply = async (data) => {
   try {
-    const response = await fetch('https://bot.devspandas.com/v1/ecom/ecom_chat', {
+    const response = await fetch('https://dc5a-103-8-112-37.ngrok-free.app/v1/ecom/ecom_chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -39,33 +40,42 @@ const fetchBotReply = async (data) => {
 };
 function ChatBot() {
   const [messages, setMessages] = useState([
-    { type: "text", text: "Hello! How can I help you?", sender: "bot" }
+    { type: "text", text: "Hello!", sender: "bot" },
+    { type: "text", text: "How can I assist you today? If you have any questions about orders, returns, or our store policies, feel free to ask!", sender: "bot" },
+    {
+      type: "buttons",
+      buttons: ["Catalog", "Order Inquiry", "Send us Email"],
+      sender: "bot"
+    }
   ]);
   const [userMessage, setUserMessage] = useState("");
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-    // localStorage.removeItem("session_id");
   }, [messages]);
   useEffect(() => {
     localStorage.removeItem("session_id");
   }, []);
-  const sendMessage = async () => {
-    if (!userMessage.trim()) return;
-    const newMessages = [...messages, { type: "text", text: userMessage, sender: "user" }];
+  const sendMessage = async (messageText) => {
+    const textToSend = messageText || userMessage;
+    if (!textToSend.trim()) return;
+    const newMessages = [...messages, { type: "text", text: textToSend, sender: "user" }];
     setMessages(newMessages);
+    setUserMessage("");
     const data = {
       session_id: getSessionId(),
-      message: userMessage,
+      message: textToSend,
       Zone: "Asia/Karachi",
       zoneTime: new Date().toLocaleString("en-US", { timeZone: "Asia/Karachi" }),
       ip: "116.58.22.198",
     };
-    console.log('send message:',data);
+    console.log('send message:', data);
     setUserMessage("");
+    setIsTyping(true);
     try {
       const reply = await fetchBotReply(data);
       console.log("Full API reply:", reply);
@@ -79,6 +89,19 @@ function ChatBot() {
       if (reply.follow_up_question && reply.follow_up_question.trim() !== "") {
         messagesToAdd.push({ type: "text", text: reply.follow_up_question, sender: "bot" });
       }
+      if (reply.button_value === 2) {
+        messagesToAdd.push({
+          type: "buttons",
+          buttons: ["Catalog", "Order Inquiry", "Send us Email"],
+          sender: "bot"
+        });
+      } else if (reply.button_value === 3) {
+        messagesToAdd.push({
+          type: "buttons",
+          buttons: ["T-shirts", "Jeans", "Jacket", "Caps"],
+          sender: "bot"
+        });
+      }
       setMessages(prevMessages => [
         ...prevMessages,
         ...messagesToAdd
@@ -89,6 +112,8 @@ function ChatBot() {
         ...prevMessages,
         { type: "text", text: "Sorry, there was an error. Please try again later.", sender: "bot" }
       ]);
+    } finally {
+      setIsTyping(false);
     }
   };
   const toggleChat = () => setIsChatOpen(!isChatOpen);
@@ -122,23 +147,7 @@ function ChatBot() {
   };
   return (
     <div>
-      <div
-        onClick={toggleChat}
-        style={{
-          position: "fixed",
-          bottom: "20px",
-          right: "20px",
-          backgroundColor: "#007bff",
-          color: "white",
-          borderRadius: "50%",
-          padding: "15px",
-          cursor: "pointer",
-          boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)",
-          fontSize: "20px",
-        }}
-      >
-        💬
-      </div>
+      <div onClick={toggleChat} style={{ position: "fixed", bottom: "20px", right: "20px", backgroundColor: "#007bff", color: "white", borderRadius: "50%", padding: "15px", cursor: "pointer", boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)", fontSize: "20px", }}>💬</div>
       <AnimatePresence>
         {isChatOpen && (
           <motion.div
@@ -163,7 +172,7 @@ function ChatBot() {
             <div className="chat-title" style={{ color: 'white', backgroundColor: '#133b3b' }}>
               <h1 style={{ margin: 0, fontSize: "18px" }}>Qubit Commerce</h1>
             </div>
-            <div style={{ flex: 1, overflowY: "auto", padding: "10px", }}>
+            <div style={{ flex: 1, overflowY: "auto", padding: "10px" }}>
               {messages.map((msg, index) => (
                 <motion.div key={index} variants={messageVariants} initial="hidden" animate="visible" style={{ marginBottom: "10px", display: "flex", flexDirection: msg.sender === "user" ? "row-reverse" : "row", alignItems: "flex-start", }}>
                   {msg.sender === "bot" && (
@@ -186,11 +195,7 @@ function ChatBot() {
                     </div>
                   )}
                   {msg.type === "products" && (
-                    <div
-                      style={{
-                        width: "75%",
-                      }}
-                    >
+                    <div style={{ width: "75%", }}>
                       <Slider
                         {...sliderSettings}
                         key={msg.products.length}
@@ -220,7 +225,7 @@ function ChatBot() {
                               />
                               <p style={{ fontSize: '14px', textAlign: 'justify' }}>{product.product_name}</p>
                               <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', margin: '10px 0' }}>
-                                <span>Price:</span><span>${product.price}</span>
+                                <span>Price:</span><span>${product.price}</span><span></span>
                               </div>
                               <button style={{ backgroundColor: 'rgb(19, 59, 59)', color: 'white', padding: '8px 30px', borderRadius: '5px', border: 'none', cursor: 'pointer' }}>Add To Cart</button>
                             </div>
@@ -229,17 +234,42 @@ function ChatBot() {
                       </Slider>
                     </div>
                   )}
+                  {msg.type === "buttons" && (
+                    <div style={{
+                      display: "flex",
+                      gap: "10px",
+                      flexWrap: "wrap",
+                      marginTop: "10px"
+                    }}>
+                      {msg.buttons.map((btnText, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => sendMessage(btnText)}
+                          style={{
+                            padding: "8px 12px",
+                            borderRadius: "5px",
+                            cursor: "pointer",
+                            background: "#133b3b",
+                            color: "white",
+                            border: "none",
+                            fontSize: "12px"
+                          }}
+                        >
+                          {btnText}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </motion.div>
               ))}
               <div ref={messagesEndRef} />
             </div>
-            <div
-              style={{
-                display: "flex",
-                padding: "10px",
-                borderTop: "1px solid #ccc",
-              }}
-            >
+            {isTyping && (
+              <li className="typing-v3">
+                <img src={typing} alt="Typing indicator" />
+              </li>
+            )}
+            <div style={{ display: "flex", padding: "10px", borderTop: "1px solid #ccc" }}>
               <input
                 type="text"
                 placeholder="Type a message..."
@@ -261,7 +291,8 @@ function ChatBot() {
                 }}
               />
               <button
-                onClick={sendMessage}
+                onClick={() => sendMessage(userMessage)}
+                // onClick={sendMessage}
                 style={{
                   backgroundColor: "#133b3b",
                   color: "#fff",
