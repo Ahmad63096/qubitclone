@@ -21,7 +21,7 @@ function getSessionId() {
 }
 const fetchBotReply = async (data) => {
   try {
-    const response = await fetch('https://e058-116-58-22-198.ngrok-free.app/v1/ecom/ecom_chat', {
+    const response = await fetch('https://bot.devspandas.com/v1/ecom/ecom_chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -227,7 +227,7 @@ function ChatBot() {
                               <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', margin: '10px 0' }}>
                                 <span>Price:</span><span>${product.price}</span><span></span>
                               </div>
-                              <a href={product.permalink} target="_blank" style={{ backgroundColor: 'rgb(19, 59, 59)', color: 'white', padding: '8px 30px', borderRadius: '5px', border: 'none', cursor: 'pointer',textDecoration:'none' }}>Add To Cart</a>
+                              <a href={product.permalink} target="_blank" style={{ backgroundColor: 'rgb(19, 59, 59)', color: 'white', padding: '8px 30px', borderRadius: '5px', border: 'none', cursor: 'pointer', textDecoration: 'none' }}>Add To Cart</a>
                             </div>
                           </div>
                         ))}
