@@ -44,7 +44,7 @@ function ChatBot() {
     { type: "text", text: "How can I assist you today? If you have any questions about orders, returns, or our store policies, feel free to ask!", sender: "bot" },
     {
       type: "buttons",
-      buttons: ["Catalog", "Order Inquiry", "Send us Email"],
+      buttons: ["Catalog", "Order other", "Send us Email"],
       sender: "bot"
     }
   ]);
@@ -92,13 +92,19 @@ function ChatBot() {
       if (reply.button_value === 2) {
         messagesToAdd.push({
           type: "buttons",
-          buttons: ["Catalog", "Order Inquiry", "Send us Email"],
+          buttons: ["Catalog", "Order other", "Send us Email"],
           sender: "bot"
         });
       } else if (reply.button_value === 3) {
         messagesToAdd.push({
           type: "buttons",
           buttons: ["T-shirts", "Jeans", "Jacket"],
+          sender: "bot"
+        });
+      } else if (reply.button_value === 4) {
+        messagesToAdd.push({
+          type: "buttons",
+          buttons: ["Order Status", "Order Edit", "Order Refund", "Order Cancel"],
           sender: "bot"
         });
       }
