@@ -44,7 +44,7 @@ function ChatBot() {
     { type: "text", text: "How can I assist you today? If you have any questions about orders, returns, or our store policies, feel free to ask!", sender: "bot" },
     {
       type: "buttons",
-      buttons: ["Catalog", "Order enquiry", "Send us Email"],
+      buttons: ["Catalog", "Order Inquiry", "Send us Email"],
       sender: "bot"
     }
   ]);
@@ -92,7 +92,7 @@ function ChatBot() {
       if (reply.button_value === 2) {
         messagesToAdd.push({
           type: "buttons",
-          buttons: ["Catalog", "Order enquiry", "Send us Email"],
+          buttons: ["Catalog", "Order Inquiry", "Send us Email"],
           sender: "bot"
         });
       } else if (reply.button_value === 3) {
