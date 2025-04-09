@@ -22,7 +22,7 @@ function getSessionId() {
 }
 const fetchBotReply = async (data) => {
   try {
-    const response = await fetch("https://bot.devspandas.com/v1/lawyer/chatbot", {
+    const response = await fetch(import.meta.env.VITE_LAWYER_CHAT, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -109,7 +109,7 @@ function LawyerBot() {
       }
 
       // Show buttons if button_value is 1 in the API response
-      if (reply.button_value === 1 ) {
+      if (reply.button_value === 1) {
         setShowButtons(true);
       }
 
@@ -194,36 +194,36 @@ function LawyerBot() {
       </div>
       <AnimatePresence>
         {isChatOpen && (
-    <motion.div
-    variants={chatWindowVariants}
-    initial="hidden"
-    animate="visible"
-    exit="exit"
-    style={{
-      position: "fixed",
-      bottom: "90px",
-      right: "20px",
-      width: "350px",
-      height: "550px",
-      border: "1px solid #ccc",
-      borderRadius: "10px",
-      boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
-      display: "flex",
-      flexDirection: "column",
-      // Apply a semi-transparent white overlay on top of your background image:
-      background: `
+          <motion.div
+            variants={chatWindowVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            style={{
+              position: "fixed",
+              bottom: "90px",
+              right: "20px",
+              width: "350px",
+              height: "550px",
+              border: "1px solid #ccc",
+              borderRadius: "10px",
+              boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
+              display: "flex",
+              flexDirection: "column",
+              // Apply a semi-transparent white overlay on top of your background image:
+              background: `
       linear-gradient(
         rgba(255, 255, 255, 0.4), 
         rgba(255, 255, 255, 0.4)
       ), 
       url(${backgroundImage})
     `,
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-    backgroundRepeat: "no-repeat",
-      zIndex: 999,
-    }}
-  >
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
+              zIndex: 999,
+            }}
+          >
             <div
               className="chat-title"
               style={{

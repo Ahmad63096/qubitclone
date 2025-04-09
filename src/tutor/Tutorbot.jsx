@@ -24,7 +24,7 @@ function getSessionId() {
 const fetchBotReply = async (data) => {
   try {
     const response = await fetch(
-      "https://bot.devspandas.com/v1/tutor/tutor_chatbot",
+      import.meta.env.VITE_TUTOR_CHAT,
       {
         method: "POST",
         headers: {

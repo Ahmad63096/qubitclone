@@ -112,7 +112,7 @@ const fetchBotReply = async (message) => {
       zoneTime,
       ip: ip || "IP not available",
     };
-    const response = await fetch("https://bot.devspandas.com/v1/qubit/qubit_core", {
+    const response = await fetch(import.meta.env.VITE_V2_CHAT, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),

@@ -9,7 +9,7 @@ const getSessionId = () => {
 };
 const fetchBotReply = async (data) => {
   try {
-    const response = await fetch('https://bot.devspandas.com/v1/bayt/bayt', {
+    const response = await fetch(import.meta.env.VITE_BAYT_CHAT, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
