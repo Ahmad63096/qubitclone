@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-// import './assets/css/message.css';
 import powerby from "./assets/images/footerlogo.png";
 import typing from "./assets/images/typing.gif";
-import { animateBotReply, fetchBotReply, getTimestamp, splitMessage,fetchControlPanelSettings } from "./Function";
+import { animateBotReply, fetchBotReply, getTimestamp, splitMessage } from "./Function";
 function Message() {
   const [messages, setMessages] = useState([]);
   const [currentMessage, setCurrentMessage] = useState("");
@@ -149,9 +148,7 @@ function Message() {
   useEffect(() => {
     const fetchGreetingMessage = async () => {
       try {
-        const greeting = await fetchControlPanelSettings('qubit');
-        console.log("greeting data: ", greeting.data.settings.greeting_message);
-        const data = greeting.data.settings.greeting_message;
+        const data = "Hi, I'm your virtual assistant, Qubit. How can I help you today?";
         const greetingMessage = {
           sender: "bot",
           text: data,
