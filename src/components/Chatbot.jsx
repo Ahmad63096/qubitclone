@@ -9,7 +9,7 @@ import { fetchControlPanelSettings } from './Function';
 function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [isChatTab, setIsChatTab] = useState(false);
-  const [showIcon, setShowIcon] = useState(false);
+  const [showIcon, setShowIcon] = useState(true);
   const [showAnimation, setShowAnimation] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
   const togglePopup = () => {
