@@ -114,7 +114,7 @@ const fetchBotReply = async (message) => {
 };
 const fetchControlPanelSettings = async (bot_type) => {
   try {
-    const apiUrl = `https://bot.devspandas.com/api/panel/control-panel-settings?bot_type=${bot_type}`;
+    const apiUrl = `${import.meta.env.VITE_FETCH_CONTROLPANELSETTINGS}?bot_type=${bot_type}`;
     const response = await fetch(apiUrl, {
       method: "GET",
       headers: {
